@@ -60,12 +60,7 @@ canvas {
 }
 
 #gameCanvas {
-  touch-action: none; /* stops the page from scrolling while swiping */
-}
-
-body:has(#gameCanvas) {
-  touch-action: none;
-  overscroll-behavior: none;
+  touch-action: none; /* stops the page from scrolling while tapping the D-pad */
 }
 
 .controls {
