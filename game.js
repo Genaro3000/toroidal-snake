@@ -156,31 +156,20 @@ playBtn.addEventListener('click', () => {
 
 restartBtn.addEventListener('click', startGame);
 
-// ---------- Touch controls (swipe) ----------
-let touchStartX = 0;
-let touchStartY = 0;
+// ---------- D-pad controls ----------
+const upBtn = document.getElementById('upBtn');
+const downBtn = document.getElementById('downBtn');
+const leftBtn = document.getElementById('leftBtn');
+const rightBtn = document.getElementById('rightBtn');
 
-canvas.addEventListener('touchstart', (e) => {
-  const touch = e.changedTouches[0];
-  touchStartX = touch.clientX;
-  touchStartY = touch.clientY;
-}, { passive: true });
-
-canvas.addEventListener('touchend', (e) => {
-  const touch = e.changedTouches[0];
-  const dx = touch.clientX - touchStartX;
-  const dy = touch.clientY - touchStartY;
-
-  // Whichever axis moved more decides the swipe direction
-  let newDir;
-  if (Math.abs(dx) > Math.abs(dy)) {
-    newDir = dx > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 };
-  } else {
-    newDir = dy > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 };
-  }
-
+function setDirection(newDir) {
   const isOpposite = newDir.x === -direction.x && newDir.y === -direction.y;
   if (!isOpposite) {
     nextDirection = newDir;
   }
-}, { passive: true });
+}
+
+upBtn.addEventListener('click', () => setDirection({ x: 0, y: -1 }));
+downBtn.addEventListener('click', () => setDirection({ x: 0, y: 1 }));
+leftBtn.addEventListener('click', () => setDirection({ x: -1, y: 0 }));
+rightBtn.addEventListener('click', () => setDirection({ x: 1, y: 0 }));
