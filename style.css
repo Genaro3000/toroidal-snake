@@ -46,6 +46,10 @@ canvas {
   margin: 0 auto;
 }
 
+#gameCanvas {
+  touch-action: none; /* keeps swipes from scrolling the page */
+}
+
 .controls {
   margin-top: 16px;
 }

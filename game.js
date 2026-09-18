@@ -4,22 +4,26 @@ const GRID_COLS = 20; // 400 / 20
 const GRID_ROWS = 20;
 const INITIAL_SPEED_MS = 130;
 
+// ---------- Screens ----------
+const homeScreen = document.getElementById('homeScreen');
+const gameScreen = document.getElementById('gameScreen');
+const playBtn = document.getElementById('playBtn');
+const restartBtn = document.getElementById('restartBtn');
+
 // ---------- Canvas setup ----------
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const previewCanvas = document.getElementById('previewCanvas');
+const previewCtx = previewCanvas.getContext('2d');
 
 const scoreEl = document.getElementById('score');
 const highscoreEl = document.getElementById('highscore');
-const startBtn = document.getElementById('startBtn');
-const pauseBtn = document.getElementById('pauseBtn');
-const restartBtn = document.getElementById('restartBtn');
 const gameOverModal = document.getElementById('gameOverModal');
 const finalScoreEl = document.getElementById('finalScore');
 
 // ---------- Game state ----------
 let snake, direction, nextDirection, food, score, highscore;
 let gameLoopId = null;
-let isPaused = false;
 let isRunning = false;
 
 highscore = Number(localStorage.getItem('snakeHighscore') || 0);
@@ -39,8 +43,6 @@ function resetState() {
 }
 
 // ---------- Toroidal wrap helper ----------
-// This is the key piece: instead of ending the game when the snake
-// goes off an edge, we wrap its coordinate to the opposite side.
 function wrap(value, max) {
   if (value < 0) return max - 1;
   if (value >= max) return 0;
@@ -66,7 +68,6 @@ function update() {
     y: wrap(snake[0].y + direction.y, GRID_ROWS),
   };
 
-  // Self-collision only (no wall collision, since the board is toroidal)
   if (snake.some(seg => seg.x === head.x && seg.y === head.y)) {
     return gameOver();
   }
@@ -82,32 +83,35 @@ function update() {
   }
 }
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+// Shared drawing function so we can reuse it for both the real
+// game canvas AND the small preview canvas on the home screen.
+function drawOn(context, snakeData, foodData, cellSize) {
+  context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
-  // Food
-  ctx.fillStyle = '#e94560';
-  ctx.fillRect(
-    food.x * CELL_SIZE + 2,
-    food.y * CELL_SIZE + 2,
-    CELL_SIZE - 4,
-    CELL_SIZE - 4
+  context.fillStyle = '#e94560';
+  context.fillRect(
+    foodData.x * cellSize + 2,
+    foodData.y * cellSize + 2,
+    cellSize - 4,
+    cellSize - 4
   );
 
-  // Snake
-  snake.forEach((seg, i) => {
-    ctx.fillStyle = i === 0 ? '#8fffb0' : '#4ecca3';
-    ctx.fillRect(
-      seg.x * CELL_SIZE + 1,
-      seg.y * CELL_SIZE + 1,
-      CELL_SIZE - 2,
-      CELL_SIZE - 2
+  snakeData.forEach((seg, i) => {
+    context.fillStyle = i === 0 ? '#8fffb0' : '#4ecca3';
+    context.fillRect(
+      seg.x * cellSize + 1,
+      seg.y * cellSize + 1,
+      cellSize - 2,
+      cellSize - 2
     );
   });
 }
 
+function draw() {
+  drawOn(ctx, snake, food, CELL_SIZE);
+}
+
 function loop() {
-  if (isPaused) return;
   update();
   if (isRunning) {
     draw();
@@ -118,11 +122,7 @@ function loop() {
 function startGame() {
   resetState();
   isRunning = true;
-  isPaused = false;
   gameOverModal.classList.add('hidden');
-  startBtn.disabled = true;
-  pauseBtn.disabled = false;
-  pauseBtn.textContent = 'Pausa';
   draw();
   loop();
 }
@@ -137,47 +137,50 @@ function gameOver() {
   }
   finalScoreEl.textContent = score;
   gameOverModal.classList.remove('hidden');
-  startBtn.disabled = false;
-  pauseBtn.disabled = true;
 }
 
-function togglePause() {
-  if (!isRunning) return;
-  isPaused = !isPaused;
-  pauseBtn.textContent = isPaused ? 'Reanudar' : 'Pausa';
-  if (!isPaused) loop();
-}
+// ---------- Static preview on the home screen (just decoration) ----------
+const previewSnake = [
+  { x: 3, y: 3 }, { x: 2, y: 3 }, { x: 1, y: 3 },
+];
+const previewFood = { x: 5, y: 3 };
+const PREVIEW_CELL = 15;
+drawOn(previewCtx, previewSnake, previewFood, PREVIEW_CELL);
 
-// ---------- Input handling ----------
-const KEY_MAP = {
-  ArrowUp: { x: 0, y: -1 },
-  ArrowDown: { x: 0, y: 1 },
-  ArrowLeft: { x: -1, y: 0 },
-  ArrowRight: { x: 1, y: 0 },
-  w: { x: 0, y: -1 },
-  s: { x: 0, y: 1 },
-  a: { x: -1, y: 0 },
-  d: { x: 1, y: 0 },
-};
+// ---------- Screen switching ----------
+playBtn.addEventListener('click', () => {
+  homeScreen.classList.add('hidden');
+  gameScreen.classList.remove('hidden');
+  startGame();
+});
 
-window.addEventListener('keydown', (e) => {
-  const newDir = KEY_MAP[e.key];
-  if (!newDir) return;
+restartBtn.addEventListener('click', startGame);
 
-  // Prevent reversing directly into itself
-  const isOpposite =
-    newDir.x === -direction.x && newDir.y === -direction.y;
+// ---------- Touch controls (swipe) ----------
+let touchStartX = 0;
+let touchStartY = 0;
+
+canvas.addEventListener('touchstart', (e) => {
+  const touch = e.changedTouches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+}, { passive: true });
+
+canvas.addEventListener('touchend', (e) => {
+  const touch = e.changedTouches[0];
+  const dx = touch.clientX - touchStartX;
+  const dy = touch.clientY - touchStartY;
+
+  // Whichever axis moved more decides the swipe direction
+  let newDir;
+  if (Math.abs(dx) > Math.abs(dy)) {
+    newDir = dx > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 };
+  } else {
+    newDir = dy > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 };
+  }
+
+  const isOpposite = newDir.x === -direction.x && newDir.y === -direction.y;
   if (!isOpposite) {
     nextDirection = newDir;
   }
-
-  if (e.key === ' ') togglePause();
-});
-
-startBtn.addEventListener('click', startGame);
-pauseBtn.addEventListener('click', togglePause);
-restartBtn.addEventListener('click', startGame);
-
-// Initial draw before the game starts
-resetState();
-draw();
+}, { passive: true });

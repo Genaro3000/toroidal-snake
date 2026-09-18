@@ -3,26 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Snake Toroidal</title>
+  <title>Toroidal Snake</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="game-container">
+  <!-- HOME SCREEN -->
+  <div id="homeScreen" class="game-container">
     <h1>🐍 Toroidal Snake</h1>
     <p class="subtitle">Exit one side, enter the other</p>
+    <canvas id="previewCanvas" width="120" height="120"></canvas>
+    <div class="controls">
+      <button id="playBtn">Play</button>
+    </div>
+  </div>
 
+  <!-- GAME SCREEN -->
+  <div id="gameScreen" class="game-container hidden">
     <div class="score-board">
       <span>Score: <span id="score">0</span></span>
       <span>High Score: <span id="highscore">0</span></span>
     </div>
 
     <canvas id="gameCanvas" width="400" height="400"></canvas>
-
-    <div class="controls">
-      <p>Use the arrow keys or WASD to move</p>
-      <button id="startBtn">Start Game</button>
-      <button id="pauseBtn" disabled>Pause</button>
-    </div>
 
     <div id="gameOverModal" class="modal hidden">
       <div class="modal-content">
