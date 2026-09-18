@@ -11,7 +11,7 @@ html, body {
 }
 
 body {
-  background: #1a1a2e;
+  background: #0a0d14;
   color: #eaeaea;
   min-height: 100vh;
   display: flex;
@@ -48,8 +48,8 @@ h1 {
 }
 
 canvas {
-  background: #16213e;
-  border: 3px solid #0f3460;
+  background: #111622;
+  border: 3px solid #00ffcc;
   border-radius: 8px;
   display: block;
   margin: 0 auto;
@@ -74,9 +74,9 @@ canvas {
 }
 
 button, .btn-link {
-  background: #e94560;
-  color: white;
-  border: none;
+  background: #121212;
+  color: #ffffff;
+  border: 2px solid #ff6600;
   padding: 10px 20px;
   margin: 6px;
   border-radius: 6px;
@@ -88,15 +88,17 @@ button, .btn-link {
 }
 
 .btn-link.secondary {
-  background: #0f3460;
+  background: #121212;
 }
 
 button:hover:not(:disabled), .btn-link:hover {
-  filter: brightness(1.15);
+  background: #1c1c1c;
 }
 
 button:disabled {
-  background: #555;
+  background: #1a1a1a;
+  border-color: #555;
+  color: #777;
   cursor: not-allowed;
 }
 
@@ -137,14 +139,15 @@ button:disabled {
 }
 
 .modal-content {
-  background: #16213e;
+  background: #111622;
   padding: 30px 40px;
   border-radius: 10px;
   text-align: center;
+  border: 2px solid #ff6600;
 }
 
 .modal-content h2 {
-  color: #e94560;
+  color: #ff6600;
   margin-bottom: 10px;
 }
 

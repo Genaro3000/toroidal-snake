@@ -87,7 +87,7 @@ function draw() {
   ctx.fillRect(food.x * CELL_SIZE + 2, food.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
 
   snake.forEach((seg, i) => {
-    ctx.fillStyle = i === 0 ? '#8fffb0' : '#4ecca3';
+    ctx.fillStyle = i === 0 ? '#66ffcc' : '#00ff99';
     ctx.fillRect(seg.x * CELL_SIZE + 1, seg.y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
   });
 }

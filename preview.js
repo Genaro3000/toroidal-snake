@@ -11,6 +11,6 @@ previewCtx.fillStyle = '#e94560';
 previewCtx.fillRect(food.x * CELL + 2, food.y * CELL + 2, CELL - 4, CELL - 4);
 
 snake.forEach((seg, i) => {
-  previewCtx.fillStyle = i === 0 ? '#8fffb0' : '#4ecca3';
+  previewCtx.fillStyle = i === 0 ? '#66ffcc' : '#00ff99';
   previewCtx.fillRect(seg.x * CELL + 1, seg.y * CELL + 1, CELL - 2, CELL - 2);
 });
