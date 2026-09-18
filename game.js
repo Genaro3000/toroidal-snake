@@ -13,10 +13,6 @@ const startBtn = document.getElementById('startBtn');
 const restartBtn = document.getElementById('restartBtn');
 const gameOverModal = document.getElementById('gameOverModal');
 const finalScoreEl = document.getElementById('finalScore');
-const upBtn = document.getElementById('upBtn');
-const downBtn = document.getElementById('downBtn');
-const leftBtn = document.getElementById('leftBtn');
-const rightBtn = document.getElementById('rightBtn');
 
 let snake, direction, nextDirection, food, score, highscore;
 let gameLoopId = null;
@@ -132,10 +128,39 @@ function setDirection(newDir) {
 // ---------- Buttons ----------
 startBtn.addEventListener('click', startGame);
 restartBtn.addEventListener('click', startGame);
-upBtn.addEventListener('click', () => setDirection({ x: 0, y: -1 }));
-downBtn.addEventListener('click', () => setDirection({ x: 0, y: 1 }));
-leftBtn.addEventListener('click', () => setDirection({ x: -1, y: 0 }));
-rightBtn.addEventListener('click', () => setDirection({ x: 1, y: 0 }));
+
+// ---------- Swipe controls ----------
+let touchStartX = 0;
+let touchStartY = 0;
+const SWIPE_MIN_DISTANCE = 20; // ignore tiny accidental touches
+
+canvas.addEventListener('touchstart', (e) => {
+  const touch = e.changedTouches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+}, { passive: false });
+
+// preventDefault here is what actually stops the page from scrolling
+// while a finger is dragging across the canvas.
+canvas.addEventListener('touchmove', (e) => {
+  e.preventDefault();
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+  const touch = e.changedTouches[0];
+  const dx = touch.clientX - touchStartX;
+  const dy = touch.clientY - touchStartY;
+
+  if (Math.abs(dx) < SWIPE_MIN_DISTANCE && Math.abs(dy) < SWIPE_MIN_DISTANCE) {
+    return; // too small to count as a swipe
+  }
+
+  const newDir = Math.abs(dx) > Math.abs(dy)
+    ? { x: dx > 0 ? 1 : -1, y: 0 }
+    : { x: 0, y: dy > 0 ? 1 : -1 };
+
+  setDirection(newDir);
+}, { passive: false });
 
 // Draw an initial empty-ish state before Start is pressed
 resetState();
