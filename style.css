@@ -5,6 +5,11 @@
   font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   background: #1a1a2e;
   color: #eaeaea;
@@ -17,10 +22,13 @@ body {
 .game-container {
   text-align: center;
   padding: 20px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
 }
 
 h1 {
-  font-size: 2rem;
+  font-size: 1.8rem;
   margin-bottom: 4px;
 }
 
@@ -33,7 +41,8 @@ h1 {
 .score-board {
   display: flex;
   justify-content: space-between;
-  width: 400px;
+  width: 100%;
+  max-width: 400px;
   margin: 0 auto 10px;
   font-size: 1.1rem;
 }
@@ -44,31 +53,15 @@ canvas {
   border-radius: 8px;
   display: block;
   margin: 0 auto;
+  width: 100%;
+  max-width: 400px;
+  height: auto; /* keeps it square while shrinking on small screens */
+  aspect-ratio: 1 / 1;
 }
 
 #gameCanvas {
-  touch-action: none; /* keeps taps from scrolling the page */
+  touch-action: none; /* stops the page from scrolling while tapping the D-pad */
 }
-
-.dpad {
-  display: grid;
-  grid-template-columns: 60px 60px 60px;
-  grid-template-rows: 60px 60px;
-  gap: 6px;
-  justify-content: center;
-  margin: 16px auto 0;
-}
-
-.dpad-btn {
-  font-size: 1.4rem;
-  padding: 0;
-  margin: 0;
-}
-
-.dpad-up { grid-column: 2; grid-row: 1; }
-.dpad-left { grid-column: 1; grid-row: 2; }
-.dpad-right { grid-column: 3; grid-row: 2; }
-.dpad-down { grid-column: 2; grid-row: 2; }
 
 .controls {
   margin-top: 16px;
@@ -80,26 +73,52 @@ canvas {
   margin-bottom: 10px;
 }
 
-button {
+button, .btn-link {
   background: #e94560;
   color: white;
   border: none;
   padding: 10px 20px;
-  margin: 0 6px;
+  margin: 6px;
   border-radius: 6px;
   font-size: 1rem;
   cursor: pointer;
   transition: background 0.2s;
+  text-decoration: none;
+  display: inline-block;
 }
 
-button:hover:not(:disabled) {
-  background: #ff5773;
+.btn-link.secondary {
+  background: #0f3460;
+}
+
+button:hover:not(:disabled), .btn-link:hover {
+  filter: brightness(1.15);
 }
 
 button:disabled {
   background: #555;
   cursor: not-allowed;
 }
+
+.dpad {
+  display: grid;
+  grid-template-columns: 64px 64px 64px;
+  grid-template-rows: 64px 64px;
+  gap: 8px;
+  justify-content: center;
+  margin: 18px auto 0;
+}
+
+.dpad-btn {
+  font-size: 1.5rem;
+  padding: 0;
+  margin: 0;
+}
+
+.dpad-up { grid-column: 2; grid-row: 1; }
+.dpad-left { grid-column: 1; grid-row: 2; }
+.dpad-right { grid-column: 3; grid-row: 2; }
+.dpad-down { grid-column: 2; grid-row: 2; }
 
 .modal {
   position: fixed;

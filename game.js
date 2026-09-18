@@ -1,27 +1,23 @@
-// ---------- Config ----------
+// This file only runs on game.html
 const CELL_SIZE = 20;
-const GRID_COLS = 20; // 400 / 20
+const GRID_COLS = 20;
 const GRID_ROWS = 20;
 const INITIAL_SPEED_MS = 130;
 
-// ---------- Screens ----------
-const homeScreen = document.getElementById('homeScreen');
-const gameScreen = document.getElementById('gameScreen');
-const playBtn = document.getElementById('playBtn');
-const restartBtn = document.getElementById('restartBtn');
-
-// ---------- Canvas setup ----------
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const previewCanvas = document.getElementById('previewCanvas');
-const previewCtx = previewCanvas.getContext('2d');
 
 const scoreEl = document.getElementById('score');
 const highscoreEl = document.getElementById('highscore');
+const startBtn = document.getElementById('startBtn');
+const restartBtn = document.getElementById('restartBtn');
 const gameOverModal = document.getElementById('gameOverModal');
 const finalScoreEl = document.getElementById('finalScore');
+const upBtn = document.getElementById('upBtn');
+const downBtn = document.getElementById('downBtn');
+const leftBtn = document.getElementById('leftBtn');
+const rightBtn = document.getElementById('rightBtn');
 
-// ---------- Game state ----------
 let snake, direction, nextDirection, food, score, highscore;
 let gameLoopId = null;
 let isRunning = false;
@@ -42,7 +38,8 @@ function resetState() {
   placeFood();
 }
 
-// ---------- Toroidal wrap helper ----------
+// The toroidal wrap-around: instead of ending the game at an edge,
+// snap the coordinate to the opposite side.
 function wrap(value, max) {
   if (value < 0) return max - 1;
   if (value >= max) return 0;
@@ -83,32 +80,16 @@ function update() {
   }
 }
 
-// Shared drawing function so we can reuse it for both the real
-// game canvas AND the small preview canvas on the home screen.
-function drawOn(context, snakeData, foodData, cellSize) {
-  context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-
-  context.fillStyle = '#e94560';
-  context.fillRect(
-    foodData.x * cellSize + 2,
-    foodData.y * cellSize + 2,
-    cellSize - 4,
-    cellSize - 4
-  );
-
-  snakeData.forEach((seg, i) => {
-    context.fillStyle = i === 0 ? '#8fffb0' : '#4ecca3';
-    context.fillRect(
-      seg.x * cellSize + 1,
-      seg.y * cellSize + 1,
-      cellSize - 2,
-      cellSize - 2
-    );
-  });
-}
-
 function draw() {
-  drawOn(ctx, snake, food, CELL_SIZE);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = '#e94560';
+  ctx.fillRect(food.x * CELL_SIZE + 2, food.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+
+  snake.forEach((seg, i) => {
+    ctx.fillStyle = i === 0 ? '#8fffb0' : '#4ecca3';
+    ctx.fillRect(seg.x * CELL_SIZE + 1, seg.y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+  });
 }
 
 function loop() {
@@ -123,6 +104,7 @@ function startGame() {
   resetState();
   isRunning = true;
   gameOverModal.classList.add('hidden');
+  startBtn.disabled = true;
   draw();
   loop();
 }
@@ -137,30 +119,8 @@ function gameOver() {
   }
   finalScoreEl.textContent = score;
   gameOverModal.classList.remove('hidden');
+  startBtn.disabled = false;
 }
-
-// ---------- Static preview on the home screen (just decoration) ----------
-const previewSnake = [
-  { x: 3, y: 3 }, { x: 2, y: 3 }, { x: 1, y: 3 },
-];
-const previewFood = { x: 5, y: 3 };
-const PREVIEW_CELL = 15;
-drawOn(previewCtx, previewSnake, previewFood, PREVIEW_CELL);
-
-// ---------- Screen switching ----------
-playBtn.addEventListener('click', () => {
-  homeScreen.classList.add('hidden');
-  gameScreen.classList.remove('hidden');
-  startGame();
-});
-
-restartBtn.addEventListener('click', startGame);
-
-// ---------- D-pad controls ----------
-const upBtn = document.getElementById('upBtn');
-const downBtn = document.getElementById('downBtn');
-const leftBtn = document.getElementById('leftBtn');
-const rightBtn = document.getElementById('rightBtn');
 
 function setDirection(newDir) {
   const isOpposite = newDir.x === -direction.x && newDir.y === -direction.y;
@@ -169,7 +129,14 @@ function setDirection(newDir) {
   }
 }
 
+// ---------- Buttons ----------
+startBtn.addEventListener('click', startGame);
+restartBtn.addEventListener('click', startGame);
 upBtn.addEventListener('click', () => setDirection({ x: 0, y: -1 }));
 downBtn.addEventListener('click', () => setDirection({ x: 0, y: 1 }));
 leftBtn.addEventListener('click', () => setDirection({ x: -1, y: 0 }));
 rightBtn.addEventListener('click', () => setDirection({ x: 1, y: 0 }));
+
+// Draw an initial empty-ish state before Start is pressed
+resetState();
+draw();

@@ -7,41 +7,15 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- HOME SCREEN -->
-  <div id="homeScreen" class="game-container">
+  <div class="game-container">
     <h1>🐍 Toroidal Snake</h1>
     <p class="subtitle">Exit one side, enter the other</p>
     <canvas id="previewCanvas" width="120" height="120"></canvas>
     <div class="controls">
-      <button id="playBtn">Play</button>
+      <a href="game.html" class="btn-link">Play</a>
     </div>
   </div>
 
-  <!-- GAME SCREEN -->
-  <div id="gameScreen" class="game-container hidden">
-    <div class="score-board">
-      <span>Score: <span id="score">0</span></span>
-      <span>High Score: <span id="highscore">0</span></span>
-    </div>
-
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
-
-    <div class="dpad">
-      <button id="upBtn" class="dpad-btn dpad-up">▲</button>
-      <button id="leftBtn" class="dpad-btn dpad-left">◀</button>
-      <button id="rightBtn" class="dpad-btn dpad-right">▶</button>
-      <button id="downBtn" class="dpad-btn dpad-down">▼</button>
-    </div>
-
-    <div id="gameOverModal" class="modal hidden">
-      <div class="modal-content">
-        <h2>Game Over!</h2>
-        <p>Final Score: <span id="finalScore">0</span></p>
-        <button id="restartBtn">Play Again</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="game.js"></script>
+  <script src="preview.js"></script>
 </body>
 </html>
