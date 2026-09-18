@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snake Toroidal</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="game-container">
+    <h1>🐍 Snake Toroidal</h1>
+    <p class="subtitle">Sal por un lado, entra por el otro</p>
+
+    <div class="score-board">
+      <span>Puntos: <span id="score">0</span></span>
+      <span>Récord: <span id="highscore">0</span></span>
+    </div>
+
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <div class="controls">
+      <p>Usa las flechas o WASD para moverte</p>
+      <button id="startBtn">Iniciar juego</button>
+      <button id="pauseBtn" disabled>Pausa</button>
+    </div>
+
+    <div id="gameOverModal" class="modal hidden">
+      <div class="modal-content">
+        <h2>¡Perdiste!</h2>
+        <p>Puntos finales: <span id="finalScore">0</span></p>
+        <button id="restartBtn">Jugar de nuevo</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
