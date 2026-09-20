@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <button id="infoToggleBtn" class="info-toggle" aria-label="Souls info">i</button>
+
   <div class="game-container">
     <div class="score-board">
       <span>Score: <span id="score">0</span></span>
@@ -34,6 +36,14 @@
         <button id="restartBtn">Play Again</button>
       </div>
     </div>
+  </div>
+
+  <div id="soulsPanel" class="souls-panel hidden">
+    <div class="souls-panel-header">
+      <h2>Souls</h2>
+      <button id="closeInfoBtn" class="close-btn" aria-label="Close">&times;</button>
+    </div>
+    <ul id="soulsList" class="souls-list"></ul>
   </div>
 
   <script type="module" src="game.js"></script>
