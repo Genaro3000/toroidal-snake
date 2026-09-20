@@ -90,6 +90,10 @@ canvas {
   touch-action: none; /* stops the page from scrolling while tapping the D-pad */
 }
 
+#gameCanvas.rift-active {
+  border-color: #FF00AA;
+}
+
 .controls {
   margin-top: 16px;
 }

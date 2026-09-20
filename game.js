@@ -20,7 +20,7 @@ const SOULS = [
     name: 'Echo Soul',
     color: '#00F3FF',
     rarity: 'Common',
-    weight: 45,
+    weight: 32,
     description: 'Standard: gives normal points and grows your body.',
   },
   {
@@ -28,7 +28,7 @@ const SOULS = [
     name: 'Purity Soul',
     color: '#39FF14',
     rarity: 'Common',
-    weight: 25,
+    weight: 20,
     description: 'Antidote: instantly shrinks your body by 10%.',
   },
   {
@@ -36,16 +36,32 @@ const SOULS = [
     name: 'Rush Soul',
     color: '#FF5E00',
     rarity: 'Uncommon',
-    weight: 15,
+    weight: 14,
     description: 'Sprint: doubles your movement speed for 5 seconds.',
+  },
+  {
+    id: 'bounty',
+    name: 'Bounty Soul',
+    color: '#FFD700',
+    rarity: 'Uncommon',
+    weight: 10,
+    description: 'Gold Rush: spawns 5 fast-fading mini-souls worth exponential bonus points for 5 seconds.',
   },
   {
     id: 'chaos',
     name: 'Chaos Soul',
     color: '#8A2BE2',
     rarity: 'Rare',
-    weight: 8,
+    weight: 6,
     description: 'Inversion: reverses your controls for 7 seconds.',
+  },
+  {
+    id: 'slime',
+    name: 'Slime Soul',
+    color: '#39FF14',
+    rarity: 'Rare',
+    weight: 5,
+    description: 'Sticky Trail: leaves slime behind you for 6 seconds. Crossing your own slime halves your speed.',
   },
   {
     id: 'void',
@@ -57,12 +73,28 @@ const SOULS = [
     description: 'Ghost Mode: pass through your own body for 3 seconds.',
   },
   {
+    id: 'rift',
+    name: 'Rift Soul',
+    color: '#FF00AA',
+    rarity: 'Rare',
+    weight: 5,
+    description: 'Warp: scrambles the wrap-around edges for 8 seconds — exits connect to different sides than normal.',
+  },
+  {
     id: 'corruption',
     name: 'Corruption Soul',
     color: '#FF003C',
     rarity: 'Legendary',
     weight: 2,
     description: '10x points, but summons a bot snake that can end your run.',
+  },
+  {
+    id: 'supernova',
+    name: 'Supernova Soul',
+    color: '#FF3300',
+    rarity: 'Legendary',
+    weight: 1,
+    description: 'Body Detonation: instantly destroys the back 50% of your tail for massive bonus points.',
   },
 ];
 
@@ -111,7 +143,12 @@ let speedMultiplier = 1;
 let controlsInverted = false;
 let ghostMode = false;
 let botCells = [];
-let rushTimeout, chaosTimeout, voidTimeout, botTimeout;
+let slimeActive = false;
+let slimeCells = new Set();
+let nextTickSlowed = false;
+let miniSouls = [];
+let riftActive = false;
+let rushTimeout, chaosTimeout, voidTimeout, botTimeout, slimeTimeout, miniSoulsTimeout, riftTimeout;
 
 highscore = Number(localStorage.getItem('snakeHighscore') || 0);
 highscoreEl.textContent = highscore;
@@ -131,10 +168,20 @@ function resetState() {
   controlsInverted = false;
   ghostMode = false;
   botCells = [];
+  slimeActive = false;
+  slimeCells = new Set();
+  nextTickSlowed = false;
+  miniSouls = [];
+  riftActive = false;
+  canvas.classList.remove('rift-active');
+
   clearTimeout(rushTimeout);
   clearTimeout(chaosTimeout);
   clearTimeout(voidTimeout);
   clearTimeout(botTimeout);
+  clearTimeout(slimeTimeout);
+  clearTimeout(miniSoulsTimeout);
+  clearTimeout(riftTimeout);
 
   placeFood();
 }
@@ -145,6 +192,26 @@ function wrap(value, max) {
   if (value < 0) return max - 1;
   if (value >= max) return 0;
   return value;
+}
+
+// Rift Soul's scrambled wrap: exiting one edge enters a DIFFERENT
+// edge than usual, in a fixed rotation: top -> right -> bottom -> left -> top.
+function riftWrap(rawX, rawY) {
+  const N = GRID_COLS; // grid is square, so this works for both axes
+  if (rawY < 0) return { x: N - 1, y: wrap(rawX, N) };   // exit top -> enter right
+  if (rawX >= N) return { x: wrap(rawY, N), y: N - 1 };  // exit right -> enter bottom
+  if (rawY >= N) return { x: 0, y: wrap(rawX, N) };      // exit bottom -> enter left
+  if (rawX < 0) return { x: wrap(rawY, N), y: 0 };       // exit left -> enter top
+  return { x: rawX, y: rawY };
+}
+
+function computeNextHead() {
+  const rawX = snake[0].x + direction.x;
+  const rawY = snake[0].y + direction.y;
+  if (riftActive) {
+    return riftWrap(rawX, rawY);
+  }
+  return { x: wrap(rawX, GRID_COLS), y: wrap(rawY, GRID_ROWS) };
 }
 
 function placeFood() {
@@ -171,6 +238,30 @@ function spawnBotSnake() {
   botTimeout = setTimeout(() => { botCells = []; }, 8000);
 }
 
+function spawnMiniSouls() {
+  miniSouls = [];
+  const values = [10, 20, 40, 80, 160]; // exponential bonus
+  for (let i = 0; i < 5; i++) {
+    let cell;
+    let attempts = 0;
+    do {
+      cell = {
+        x: Math.floor(Math.random() * GRID_COLS),
+        y: Math.floor(Math.random() * GRID_ROWS),
+      };
+      attempts++;
+    } while (
+      attempts < 30 &&
+      (snake.some(seg => seg.x === cell.x && seg.y === cell.y) ||
+        (food.x === cell.x && food.y === cell.y) ||
+        miniSouls.some(m => m.x === cell.x && m.y === cell.y))
+    );
+    miniSouls.push({ x: cell.x, y: cell.y, value: values[i] });
+  }
+  clearTimeout(miniSoulsTimeout);
+  miniSoulsTimeout = setTimeout(() => { miniSouls = []; }, 5000);
+}
+
 function applySoulEffect(type) {
   switch (type.id) {
     case 'echo':
@@ -193,11 +284,26 @@ function applySoulEffect(type) {
       rushTimeout = setTimeout(() => { speedMultiplier = 1; }, 5000);
       break;
 
+    case 'bounty':
+      score += BASE_POINTS;
+      spawnMiniSouls();
+      break;
+
     case 'chaos':
       score += BASE_POINTS;
       controlsInverted = true;
       clearTimeout(chaosTimeout);
       chaosTimeout = setTimeout(() => { controlsInverted = false; }, 7000);
+      break;
+
+    case 'slime':
+      score += BASE_POINTS;
+      slimeActive = true;
+      clearTimeout(slimeTimeout);
+      slimeTimeout = setTimeout(() => {
+        slimeActive = false;
+        slimeCells = new Set();
+      }, 6000);
       break;
 
     case 'void':
@@ -207,10 +313,33 @@ function applySoulEffect(type) {
       voidTimeout = setTimeout(() => { ghostMode = false; }, 3000);
       break;
 
+    case 'rift':
+      score += BASE_POINTS;
+      riftActive = true;
+      canvas.classList.add('rift-active');
+      clearTimeout(riftTimeout);
+      riftTimeout = setTimeout(() => {
+        riftActive = false;
+        canvas.classList.remove('rift-active');
+      }, 8000);
+      break;
+
     case 'corruption':
       score += BASE_POINTS * 10;
       spawnBotSnake();
       break;
+
+    case 'supernova': {
+      const destroyCount = Math.min(
+        Math.max(1, Math.floor(snake.length * 0.5)),
+        snake.length - 1
+      );
+      for (let i = 0; i < destroyCount; i++) {
+        snake.pop();
+      }
+      score += destroyCount * 30; // massive bonus per destroyed segment
+      break;
+    }
   }
   scoreEl.textContent = score;
 }
@@ -218,10 +347,7 @@ function applySoulEffect(type) {
 function update() {
   direction = nextDirection;
 
-  const head = {
-    x: wrap(snake[0].x + direction.x, GRID_COLS),
-    y: wrap(snake[0].y + direction.y, GRID_ROWS),
-  };
+  const head = computeNextHead();
 
   const hitSelf = !ghostMode && snake.some(seg => seg.x === head.x && seg.y === head.y);
   const hitBot = botCells.some(c => c.x === head.x && c.y === head.y);
@@ -230,13 +356,25 @@ function update() {
     return gameOver();
   }
 
+  // Slime slows the NEXT tick if you're about to land on your own trail
+  nextTickSlowed = slimeActive && slimeCells.has(`${head.x},${head.y}`);
+
   snake.unshift(head);
 
+  if (slimeActive) {
+    snake.forEach(seg => slimeCells.add(`${seg.x},${seg.y}`));
+  }
+
+  // Mini-souls from Bounty Soul can be picked up any tick they're on the board
+  const miniIndex = miniSouls.findIndex(m => m.x === head.x && m.y === head.y);
+  if (miniIndex !== -1) {
+    score += miniSouls[miniIndex].value;
+    scoreEl.textContent = score;
+    miniSouls.splice(miniIndex, 1);
+  }
+
   if (head.x === food.x && head.y === food.y) {
-    const eatenType = food.type;
-    applySoulEffect(eatenType);
-    // Purity already removes segments itself; every other soul keeps
-    // the newly-added head (net growth) by simply not popping the tail.
+    applySoulEffect(food.type);
     placeFood();
   } else {
     snake.pop();
@@ -246,10 +384,25 @@ function update() {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Slime trail (drawn first, underneath everything)
+  if (slimeActive) {
+    ctx.fillStyle = 'rgba(57, 255, 20, 0.25)';
+    slimeCells.forEach(key => {
+      const [x, y] = key.split(',').map(Number);
+      ctx.fillRect(x * CELL_SIZE + 3, y * CELL_SIZE + 3, CELL_SIZE - 6, CELL_SIZE - 6);
+    });
+  }
+
   // Bot snake obstacle (from Corruption Soul)
   ctx.fillStyle = '#661018';
   botCells.forEach(c => {
     ctx.fillRect(c.x * CELL_SIZE + 1, c.y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+  });
+
+  // Mini-souls (from Bounty Soul)
+  ctx.fillStyle = '#FFD700';
+  miniSouls.forEach(m => {
+    ctx.fillRect(m.x * CELL_SIZE + 6, m.y * CELL_SIZE + 6, CELL_SIZE - 12, CELL_SIZE - 12);
   });
 
   // Soul (food)
@@ -272,7 +425,9 @@ function loop() {
   update();
   if (isRunning) {
     draw();
-    gameLoopId = setTimeout(loop, INITIAL_SPEED_MS / speedMultiplier);
+    let delay = INITIAL_SPEED_MS / speedMultiplier;
+    if (nextTickSlowed) delay *= 2;
+    gameLoopId = setTimeout(loop, delay);
   }
 }
 
