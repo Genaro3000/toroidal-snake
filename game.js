@@ -8,6 +8,10 @@ const GRID_ROWS = 20;
 const INITIAL_SPEED_MS = 130;
 const BASE_POINTS = 10;
 
+// Change this to whatever secret word you want in the URL,
+// e.g. game.html?admin=ghost1234
+const ADMIN_KEY = 'ghost1234';
+
 // ---------- Souls (collectible types) ----------
 // weight controls how often each one appears; higher = more common.
 const SOULS = [
@@ -90,6 +94,10 @@ const infoToggleBtn = document.getElementById('infoToggleBtn');
 const closeInfoBtn = document.getElementById('closeInfoBtn');
 const soulsPanel = document.getElementById('soulsPanel');
 const soulsList = document.getElementById('soulsList');
+const adminPanel = document.getElementById('adminPanel');
+const adminLengthInput = document.getElementById('adminLengthInput');
+const adminSetLengthBtn = document.getElementById('adminSetLengthBtn');
+const adminSoulButtons = document.getElementById('adminSoulButtons');
 
 // ---------- Game state ----------
 let snake, direction, nextDirection, food, score, highscore;
@@ -339,6 +347,50 @@ renderSoulsList();
 
 infoToggleBtn.addEventListener('click', () => soulsPanel.classList.toggle('hidden'));
 closeInfoBtn.addEventListener('click', () => soulsPanel.classList.add('hidden'));
+
+// ---------- Admin test panel (only shows with ?admin=KEY in the URL) ----------
+function setSnakeLength(newLength) {
+  if (!snake || snake.length === 0) {
+    alert('Start the game first, then adjust the length.');
+    return;
+  }
+  newLength = Math.max(1, Math.min(200, Math.floor(newLength)));
+  while (snake.length < newLength) {
+    const tail = snake[snake.length - 1];
+    snake.push({ x: tail.x, y: tail.y });
+  }
+  while (snake.length > newLength) {
+    snake.pop();
+  }
+  draw();
+}
+
+function renderAdminSoulButtons() {
+  adminSoulButtons.innerHTML = '';
+  SOULS.forEach(s => {
+    const btn = document.createElement('button');
+    btn.textContent = s.name;
+    btn.style.borderColor = s.color;
+    btn.addEventListener('click', () => {
+      if (!snake || snake.length === 0) {
+        alert('Start the game first.');
+        return;
+      }
+      applySoulEffect(s);
+      draw();
+    });
+    adminSoulButtons.appendChild(btn);
+  });
+}
+
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('admin') === ADMIN_KEY) {
+  adminPanel.classList.remove('hidden');
+  renderAdminSoulButtons();
+  adminSetLengthBtn.addEventListener('click', () => {
+    setSnakeLength(Number(adminLengthInput.value));
+  });
+}
 
 // Draw an initial state before Start is pressed
 resetState();

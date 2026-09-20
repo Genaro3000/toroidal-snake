@@ -45,6 +45,19 @@
     <ul id="soulsList" class="souls-list"></ul>
   </div>
 
+  <div id="adminPanel" class="admin-panel hidden">
+    <h3>Admin — Test Tools</h3>
+
+    <div class="admin-row">
+      <label for="adminLengthInput">Snake length</label>
+      <input id="adminLengthInput" type="number" min="1" max="200" value="3" />
+      <button id="adminSetLengthBtn">Set</button>
+    </div>
+
+    <p class="admin-label">Trigger a soul effect:</p>
+    <div class="admin-soul-buttons" id="adminSoulButtons"></div>
+  </div>
+
   <script type="module" src="game.js"></script>
 </body>
 </html>

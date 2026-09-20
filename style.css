@@ -361,3 +361,65 @@ button:disabled {
   color: #cfd3e0;
   margin-top: 2px;
 }
+
+.admin-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #111622;
+  border-top: 2px solid #ff6600;
+  padding: 14px 16px;
+  z-index: 30;
+  text-align: left;
+}
+
+.admin-panel.hidden {
+  display: none;
+}
+
+.admin-panel h3 {
+  color: #ff6600;
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+}
+
+.admin-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.admin-row label {
+  font-size: 0.85rem;
+  color: #cfd3e0;
+}
+
+.admin-row input {
+  width: 70px;
+  background: #0a0d14;
+  border: 2px solid #00ffcc;
+  color: #ffffff;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.admin-label {
+  font-size: 0.85rem;
+  color: #cfd3e0;
+  margin-bottom: 6px;
+}
+
+.admin-soul-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-soul-buttons button {
+  font-size: 0.8rem;
+  padding: 6px 10px;
+  margin: 0;
+}
