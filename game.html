@@ -12,6 +12,7 @@
       <span>Score: <span id="score">0</span></span>
       <span>High Score: <span id="highscore">0</span></span>
       <button id="infoToggleBtn" class="info-btn" aria-label="Souls info">i</button>
+      <button id="adminToggleBtn" class="info-btn admin-toggle hidden" aria-label="Admin tools">⚙</button>
     </div>
 
     <canvas id="gameCanvas" width="400" height="400"></canvas>
@@ -46,15 +47,18 @@
   </div>
 
   <div id="adminPanel" class="admin-panel hidden">
-    <h3>Admin — Test Tools</h3>
+    <div class="admin-panel-header">
+      <h3>Admin — Test Tools</h3>
+      <button id="closeAdminBtn" class="close-btn" aria-label="Close">&times;</button>
+    </div>
 
     <div class="admin-row">
-      <label for="adminLengthInput">Snake length</label>
+      <label for="adminLengthInput">Length</label>
       <input id="adminLengthInput" type="number" min="1" max="200" value="3" />
       <button id="adminSetLengthBtn">Set</button>
     </div>
 
-    <p class="admin-label">Trigger a soul effect:</p>
+    <p class="admin-label">Trigger a soul:</p>
     <div class="admin-soul-buttons" id="adminSoulButtons"></div>
   </div>
 

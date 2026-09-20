@@ -95,6 +95,8 @@ const closeInfoBtn = document.getElementById('closeInfoBtn');
 const soulsPanel = document.getElementById('soulsPanel');
 const soulsList = document.getElementById('soulsList');
 const adminPanel = document.getElementById('adminPanel');
+const adminToggleBtn = document.getElementById('adminToggleBtn');
+const closeAdminBtn = document.getElementById('closeAdminBtn');
 const adminLengthInput = document.getElementById('adminLengthInput');
 const adminSetLengthBtn = document.getElementById('adminSetLengthBtn');
 const adminSoulButtons = document.getElementById('adminSoulButtons');
@@ -385,7 +387,9 @@ function renderAdminSoulButtons() {
 
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('admin') === ADMIN_KEY) {
-  adminPanel.classList.remove('hidden');
+  adminToggleBtn.classList.remove('hidden');
+  adminToggleBtn.addEventListener('click', () => adminPanel.classList.toggle('hidden'));
+  closeAdminBtn.addEventListener('click', () => adminPanel.classList.add('hidden'));
   renderAdminSoulButtons();
   adminSetLengthBtn.addEventListener('click', () => {
     setSnakeLength(Number(adminLengthInput.value));
