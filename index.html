@@ -11,11 +11,28 @@
     <h1>🐍 Toroidal Snake</h1>
     <p class="subtitle">Exit one side, enter the other</p>
     <canvas id="previewCanvas" width="120" height="120"></canvas>
+    <p id="greeting" class="greeting hidden"></p>
     <div class="controls">
       <a href="game.html" class="btn-link">Play</a>
     </div>
+
+    <div class="leaderboard">
+      <h2>Top 10</h2>
+      <ol id="leaderboardList">
+        <li>Loading...</li>
+      </ol>
+    </div>
   </div>
 
-  <script src="preview.js"></script>
+  <div id="nameModal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Welcome!</h2>
+      <p>What should we call you?</p>
+      <input id="nameInput" type="text" placeholder="Your Discord name" maxlength="20" />
+      <button id="nameSubmitBtn">Let's go</button>
+    </div>
+  </div>
+
+  <script type="module" src="preview.js"></script>
 </body>
 </html>

@@ -151,6 +151,82 @@ button:disabled {
   margin-bottom: 10px;
 }
 
+.modal-content input {
+  width: 100%;
+  background: #0a0d14;
+  border: 2px solid #00ffcc;
+  color: #ffffff;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin: 14px 0;
+  text-align: center;
+}
+
+.modal-content input::placeholder {
+  color: #6b7280;
+}
+
+.modal-content input:focus {
+  outline: none;
+  border-color: #ff6600;
+}
+
+.greeting {
+  color: #00ff99;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+}
+
+.leaderboard {
+  margin-top: 24px;
+  text-align: left;
+}
+
+.leaderboard h2 {
+  color: #ff6600;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+#leaderboardList {
+  list-style: none;
+  background: #111622;
+  border: 2px solid #00ffcc;
+  border-radius: 8px;
+  padding: 10px 16px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+#leaderboardList li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #1c2333;
+  font-size: 0.95rem;
+}
+
+#leaderboardList li:last-child {
+  border-bottom: none;
+}
+
+#leaderboardList .lb-name {
+  color: #ffffff;
+}
+
+#leaderboardList .lb-score {
+  color: #00ff99;
+  font-weight: bold;
+}
+
+#leaderboardList .lb-empty {
+  color: #6b7280;
+  text-align: center;
+  padding: 8px 0;
+}
+
 .modal-content p {
   margin-bottom: 20px;
 }
