@@ -14,98 +14,108 @@ const ADMIN_KEY = 'ghost1234';
 
 // ---------- Souls (collectible types) ----------
 // weight controls how often each one appears; higher = more common.
+// category decides which info-panel tab it shows in ('active', 'villain', or 'both').
 const SOULS = [
   {
-    id: 'echo',
-    name: 'Echo Soul',
-    color: '#00F3FF',
-    rarity: 'Common',
-    weight: 32,
+    id: 'echo', name: 'Echo Soul', color: '#00F3FF', rarity: 'Common', weight: 32,
+    category: 'active',
     description: 'Standard: gives normal points and grows your body.',
   },
   {
-    id: 'purity',
-    name: 'Purity Soul',
-    color: '#39FF14',
-    rarity: 'Common',
-    weight: 20,
+    id: 'purity', name: 'Purity Soul', color: '#39FF14', rarity: 'Common', weight: 20,
+    category: 'active',
     description: 'Antidote: instantly shrinks your body by 10%.',
   },
   {
-    id: 'rush',
-    name: 'Rush Soul',
-    color: '#FF5E00',
-    rarity: 'Uncommon',
-    weight: 14,
+    id: 'rush', name: 'Rush Soul', color: '#FF5E00', rarity: 'Uncommon', weight: 14,
+    category: 'active',
     description: 'Sprint: doubles your movement speed for 5 seconds.',
   },
   {
-    id: 'bounty',
-    name: 'Bounty Soul',
-    color: '#FFD700',
-    rarity: 'Uncommon',
-    weight: 10,
+    id: 'bounty', name: 'Bounty Soul', color: '#FFD700', rarity: 'Uncommon', weight: 10,
+    category: 'active',
     description: 'Gold Rush: spawns 5 fast-fading mini-souls worth exponential bonus points for 5 seconds.',
   },
   {
-    id: 'chaos',
-    name: 'Chaos Soul',
-    color: '#8A2BE2',
-    rarity: 'Rare',
-    weight: 6,
+    id: 'chaos', name: 'Chaos Soul', color: '#8A2BE2', rarity: 'Rare', weight: 6,
+    category: 'active',
     description: 'Inversion: reverses your controls for 7 seconds.',
   },
   {
-    id: 'slime',
-    name: 'Slime Soul',
-    color: '#39FF14',
-    rarity: 'Rare',
-    weight: 5,
+    id: 'slime', name: 'Slime Soul', color: '#39FF14', rarity: 'Rare', weight: 5,
+    category: 'active',
     description: 'Sticky Trail: leaves slime behind you for 6 seconds. Crossing your own slime halves your speed.',
   },
   {
-    id: 'void',
-    name: 'Void Soul',
-    color: '#1A0033',
-    glow: '#00F3FF',
-    rarity: 'Rare',
-    weight: 5,
+    id: 'void', name: 'Void Soul', color: '#1A0033', glow: '#00F3FF', rarity: 'Rare', weight: 5,
+    category: 'active',
     description: 'Ghost Mode: pass through your own body for 3 seconds.',
   },
   {
-    id: 'rift',
-    name: 'Rift Soul',
-    color: '#FF00AA',
-    rarity: 'Rare',
-    weight: 5,
+    id: 'rift', name: 'Rift Soul', color: '#FF00AA', rarity: 'Rare', weight: 5,
+    category: 'active',
     description: 'Warp: scrambles the wrap-around edges for 8 seconds — exits connect to different sides than normal.',
   },
   {
-    id: 'corruption',
-    name: 'Corruption Soul',
-    color: '#FF003C',
-    rarity: 'Legendary',
-    weight: 2,
+    id: 'corruption', name: 'Corruption Soul', color: '#FF003C', rarity: 'Legendary', weight: 2,
+    category: 'active',
     description: '10x points, but summons a bot snake that can end your run.',
   },
   {
-    id: 'supernova',
-    name: 'Supernova Soul',
-    color: '#FF3300',
-    rarity: 'Legendary',
-    weight: 1,
+    id: 'supernova', name: 'Supernova Soul', color: '#FF3300', rarity: 'Legendary', weight: 1,
+    category: 'active',
     description: 'Body Detonation: instantly destroys the back 50% of your tail for massive bonus points.',
+  },
+  {
+    id: 'mimic', name: 'Mimic Soul', color: '#63310d', border: '#7a2f00', rarity: 'Rare', weight: 0,
+    category: 'both',
+    description: 'Decoy: marks the next soul with a dark orange outline. Eating it while marked is instant death. Avoid it for 5 seconds and it becomes a normal soul.',
+  },
+  {
+    id: 'spider', name: 'Spider Soul', color: '#000000', border: '#960000', rarity: 'Rare', weight: 5,
+    category: 'villain',
+    description: 'Web Trap: triggers a 5x5 cobweb. Your speed is reduced by 70% while you\'re touching it.',
+  },
+  {
+    id: 'blindness', name: 'Blindness Soul', color: '#000000', border: '#1c004a', rarity: 'Rare', weight: 4,
+    category: 'villain',
+    description: 'Fog of War: reduces your sight to just your head for 6 seconds. Everything else turns pitch black.',
+  },
+  {
+    id: 'zombie', name: 'Zombie Soul', color: '#2cde00', border: '#ff26f1', rarity: 'Rare', weight: 4,
+    category: 'villain',
+    description: 'Necrotic Spurt: increases your movement speed for 3 seconds, but turning is locked.',
+  },
+  {
+    id: 'skeleton', name: 'Skeleton Soul', color: '#ffffff', border: '#8c8c8c', rarity: 'Legendary', weight: 2,
+    category: 'villain',
+    description: 'Solid Boundaries: all edges become solid walls for 5 seconds. Hitting one ends your run.',
+  },
+  {
+    id: 'phantom', name: 'Phantom Soul', color: '#00008c', border: '#46de00', rarity: 'Rare', weight: 4,
+    category: 'villain',
+    description: 'Haunted Decoy: spawns an autonomous ghost that travels in a straight line. Touching its path steals 50% of your score.',
+  },
+  {
+    id: 'grave', name: 'Grave Soul', color: '#4d4d4d', border: '#000000', rarity: 'Rare', weight: 4,
+    category: 'villain',
+    description: 'Tombstone Hazard: drops a static tombstone where consumed. It is lethal to touch and vanishes after 8 seconds.',
   },
 ];
 
+// Low chance that any newly spawned soul gets marked as a Mimic.
+const MIMIC_CHANCE = 0.06;
+const MIMIC_DURATION_MS = 5000;
+
 function pickWeightedSoul() {
-  const total = SOULS.reduce((sum, s) => sum + s.weight, 0);
+  const pickable = SOULS.filter(s => s.weight > 0);
+  const total = pickable.reduce((sum, s) => sum + s.weight, 0);
   let r = Math.random() * total;
-  for (const s of SOULS) {
+  for (const s of pickable) {
     if (r < s.weight) return s;
     r -= s.weight;
   }
-  return SOULS[0];
+  return pickable[0];
 }
 
 // ---------- DOM references ----------
@@ -126,6 +136,7 @@ const infoToggleBtn = document.getElementById('infoToggleBtn');
 const closeInfoBtn = document.getElementById('closeInfoBtn');
 const soulsPanel = document.getElementById('soulsPanel');
 const soulsList = document.getElementById('soulsList');
+const soulsTabs = document.querySelectorAll('.souls-tab');
 const adminPanel = document.getElementById('adminPanel');
 const adminToggleBtn = document.getElementById('adminToggleBtn');
 const closeAdminBtn = document.getElementById('closeAdminBtn');
@@ -148,7 +159,19 @@ let slimeCells = new Set();
 let nextTickSlowed = false;
 let miniSouls = [];
 let riftActive = false;
-let rushTimeout, chaosTimeout, voidTimeout, botTimeout, slimeTimeout, miniSoulsTimeout, riftTimeout;
+
+// Villain-souls state
+let spiderWebCells = [];       // {x,y,expiresAt}
+let nextTickWebSlowed = false;
+let blindnessActive = false;
+let zombieActive = false;
+let skeletonActive = false;
+let phantom = null;            // {x,y,dx,dy,path:Set}
+let graveCells = [];           // {x,y,expiresAt}
+
+let rushTimeout, chaosTimeout, voidTimeout, botTimeout, slimeTimeout,
+  miniSoulsTimeout, riftTimeout, blindnessTimeout,
+  zombieTimeout, skeletonTimeout, phantomTimeout;
 
 highscore = Number(localStorage.getItem('snakeHighscore') || 0);
 highscoreEl.textContent = highscore;
@@ -175,6 +198,14 @@ function resetState() {
   riftActive = false;
   canvas.classList.remove('rift-active');
 
+  spiderWebCells = [];
+  nextTickWebSlowed = false;
+  blindnessActive = false;
+  zombieActive = false;
+  skeletonActive = false;
+  phantom = null;
+  graveCells = [];
+
   clearTimeout(rushTimeout);
   clearTimeout(chaosTimeout);
   clearTimeout(voidTimeout);
@@ -182,6 +213,10 @@ function resetState() {
   clearTimeout(slimeTimeout);
   clearTimeout(miniSoulsTimeout);
   clearTimeout(riftTimeout);
+  clearTimeout(blindnessTimeout);
+  clearTimeout(zombieTimeout);
+  clearTimeout(skeletonTimeout);
+  clearTimeout(phantomTimeout);
 
   placeFood();
 }
@@ -205,12 +240,23 @@ function riftWrap(rawX, rawY) {
   return { x: rawX, y: rawY };
 }
 
+// Returns the next head position, or null if Skeleton Soul's solid
+// walls make this move fatal.
 function computeNextHead() {
   const rawX = snake[0].x + direction.x;
   const rawY = snake[0].y + direction.y;
+
+  if (skeletonActive) {
+    if (rawX < 0 || rawX >= GRID_COLS || rawY < 0 || rawY >= GRID_ROWS) {
+      return null; // hit a solid wall
+    }
+    return { x: rawX, y: rawY };
+  }
+
   if (riftActive) {
     return riftWrap(rawX, rawY);
   }
+
   return { x: wrap(rawX, GRID_COLS), y: wrap(rawY, GRID_ROWS) };
 }
 
@@ -221,8 +267,16 @@ function placeFood() {
       x: Math.floor(Math.random() * GRID_COLS),
       y: Math.floor(Math.random() * GRID_ROWS),
       type: pickWeightedSoul(),
+      isMimic: false,
+      mimicExpiresAt: 0,
     };
   } while (snake.some(seg => seg.x === newFood.x && seg.y === newFood.y));
+
+  if (Math.random() < MIMIC_CHANCE) {
+    newFood.isMimic = true;
+    newFood.mimicExpiresAt = Date.now() + MIMIC_DURATION_MS;
+  }
+
   food = newFood;
 }
 
@@ -262,7 +316,36 @@ function spawnMiniSouls() {
   miniSoulsTimeout = setTimeout(() => { miniSouls = []; }, 5000);
 }
 
-function applySoulEffect(type) {
+function spawnSpiderWeb(atX, atY) {
+  const cells = [];
+  const expiresAt = Date.now() + 8000;
+  for (let dx = -2; dx <= 2; dx++) {
+    for (let dy = -2; dy <= 2; dy++) {
+      cells.push({ x: wrap(atX + dx, GRID_COLS), y: wrap(atY + dy, GRID_ROWS), expiresAt });
+    }
+  }
+  spiderWebCells.push(...cells);
+}
+
+function spawnGrave(atX, atY) {
+  graveCells.push({ x: atX, y: atY, expiresAt: Date.now() + 10000 });
+}
+
+function spawnPhantom() {
+  const dirs = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
+  const dir = dirs[Math.floor(Math.random() * dirs.length)];
+  phantom = {
+    x: Math.floor(Math.random() * GRID_COLS),
+    y: Math.floor(Math.random() * GRID_ROWS),
+    dx: dir.x,
+    dy: dir.y,
+    path: new Set(),
+  };
+  clearTimeout(phantomTimeout);
+  phantomTimeout = setTimeout(() => { phantom = null; }, 8000);
+}
+
+function applySoulEffect(type, atX, atY) {
   switch (type.id) {
     case 'echo':
       score += BASE_POINTS;
@@ -340,6 +423,42 @@ function applySoulEffect(type) {
       score += destroyCount * 30; // massive bonus per destroyed segment
       break;
     }
+
+    case 'spider':
+      score += BASE_POINTS;
+      spawnSpiderWeb(atX, atY);
+      break;
+
+    case 'blindness':
+      score += BASE_POINTS;
+      blindnessActive = true;
+      clearTimeout(blindnessTimeout);
+      blindnessTimeout = setTimeout(() => { blindnessActive = false; }, 6000);
+      break;
+
+    case 'zombie':
+      score += BASE_POINTS;
+      zombieActive = true;
+      clearTimeout(zombieTimeout);
+      zombieTimeout = setTimeout(() => { zombieActive = false; }, 3000);
+      break;
+
+    case 'skeleton':
+      score += BASE_POINTS;
+      skeletonActive = true;
+      clearTimeout(skeletonTimeout);
+      skeletonTimeout = setTimeout(() => { skeletonActive = false; }, 5000);
+      break;
+
+    case 'phantom':
+      score += BASE_POINTS;
+      spawnPhantom();
+      break;
+
+    case 'grave':
+      score += BASE_POINTS;
+      spawnGrave(atX, atY);
+      break;
   }
   scoreEl.textContent = score;
 }
@@ -347,22 +466,55 @@ function applySoulEffect(type) {
 function update() {
   direction = nextDirection;
 
+  // Mimic's brown outline fades after its timer runs out — it just
+  // becomes an ordinary, unmarked soul of the same type.
+  if (food.isMimic && Date.now() > food.mimicExpiresAt) {
+    food.isMimic = false;
+  }
+
+  // Clear expired hazards
+  const now = Date.now();
+  spiderWebCells = spiderWebCells.filter(c => c.expiresAt > now);
+  graveCells = graveCells.filter(c => c.expiresAt > now);
+
   const head = computeNextHead();
+  if (head === null) {
+    return gameOver(); // Skeleton Soul: hit a solid wall
+  }
 
   const hitSelf = !ghostMode && snake.some(seg => seg.x === head.x && seg.y === head.y);
   const hitBot = botCells.some(c => c.x === head.x && c.y === head.y);
+  const hitGrave = graveCells.some(c => c.x === head.x && c.y === head.y);
+  const hitLethalMimic = food.isMimic && head.x === food.x && head.y === food.y;
 
-  if (hitSelf || hitBot) {
+  if (hitSelf || hitBot || hitGrave || hitLethalMimic) {
     return gameOver();
   }
 
   // Slime slows the NEXT tick if you're about to land on your own trail
   nextTickSlowed = slimeActive && slimeCells.has(`${head.x},${head.y}`);
 
+  // Spider's web slows you only while you're actually standing on it
+  nextTickWebSlowed = spiderWebCells.some(c => c.x === head.x && c.y === head.y);
+
   snake.unshift(head);
 
   if (slimeActive) {
     snake.forEach(seg => slimeCells.add(`${seg.x},${seg.y}`));
+  }
+
+  // Move the Phantom ghost and check if its current cell or trail hits us
+  if (phantom) {
+    phantom.x = wrap(phantom.x + phantom.dx, GRID_COLS);
+    phantom.y = wrap(phantom.y + phantom.dy, GRID_ROWS);
+    phantom.path.add(`${phantom.x},${phantom.y}`);
+
+    if (phantom.path.has(`${head.x},${head.y}`)) {
+      score = Math.floor(score / 2);
+      scoreEl.textContent = score;
+      clearTimeout(phantomTimeout);
+      phantom = null;
+    }
   }
 
   // Mini-souls from Bounty Soul can be picked up any tick they're on the board
@@ -374,16 +526,19 @@ function update() {
   }
 
   if (head.x === food.x && head.y === food.y) {
-    applySoulEffect(food.type);
+    if (food.isMimic) {
+      return gameOver(); // Mimic Soul: eating it while marked is instant death
+    }
+    const eatenX = food.x;
+    const eatenY = food.y;
+    applySoulEffect(food.type, eatenX, eatenY);
     placeFood();
   } else {
     snake.pop();
   }
 }
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+function drawGameContents() {
   // Slime trail (drawn first, underneath everything)
   if (slimeActive) {
     ctx.fillStyle = 'rgba(57, 255, 20, 0.25)';
@@ -393,11 +548,37 @@ function draw() {
     });
   }
 
+  // Spider webs
+  ctx.fillStyle = 'rgba(99, 49, 13, 0.35)';
+  spiderWebCells.forEach(c => {
+    ctx.fillRect(c.x * CELL_SIZE + 2, c.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+  });
+
+  // Graves
+  ctx.fillStyle = '#3B3C36';
+  graveCells.forEach(c => {
+    ctx.fillRect(c.x * CELL_SIZE + 2, c.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+    ctx.strokeStyle = '#63310d';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(c.x * CELL_SIZE + 2, c.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+  });
+
   // Bot snake obstacle (from Corruption Soul)
   ctx.fillStyle = '#661018';
   botCells.forEach(c => {
     ctx.fillRect(c.x * CELL_SIZE + 1, c.y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
   });
+
+  // Phantom ghost + its trail
+  if (phantom) {
+    ctx.fillStyle = 'rgba(75, 0, 130, 0.3)';
+    phantom.path.forEach(key => {
+      const [x, y] = key.split(',').map(Number);
+      ctx.fillRect(x * CELL_SIZE + 4, y * CELL_SIZE + 4, CELL_SIZE - 8, CELL_SIZE - 8);
+    });
+    ctx.fillStyle = '#4B0082';
+    ctx.fillRect(phantom.x * CELL_SIZE + 1, phantom.y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+  }
 
   // Mini-souls (from Bounty Soul)
   ctx.fillStyle = '#FFD700';
@@ -413,6 +594,11 @@ function draw() {
     ctx.lineWidth = 2;
     ctx.strokeRect(food.x * CELL_SIZE + 2, food.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
   }
+  if (food.isMimic) {
+    ctx.strokeStyle = '#7a2f00';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(food.x * CELL_SIZE, food.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+  }
 
   // Snake
   snake.forEach((seg, i) => {
@@ -421,12 +607,34 @@ function draw() {
   });
 }
 
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (blindnessActive) {
+    // Fill everything black, then only reveal a small circle around the head
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.beginPath();
+    const cx = (snake[0].x + 0.5) * CELL_SIZE;
+    const cy = (snake[0].y + 0.5) * CELL_SIZE;
+    ctx.arc(cx, cy, 0.7 * CELL_SIZE, 0, Math.PI * 2);
+    ctx.clip();
+    drawGameContents();
+    ctx.restore();
+  } else {
+    drawGameContents();
+  }
+}
+
 function loop() {
   update();
   if (isRunning) {
     draw();
     let delay = INITIAL_SPEED_MS / speedMultiplier;
     if (nextTickSlowed) delay *= 2;
+    if (nextTickWebSlowed) delay /= 0.3; // 70% slower
+    if (zombieActive) delay = INITIAL_SPEED_MS / 4; // hyper-speed overrides everything
     gameLoopId = setTimeout(loop, delay);
   }
 }
@@ -468,6 +676,8 @@ async function submitScore(finalScore) {
 }
 
 function setDirection(rawDir) {
+  if (zombieActive) return; // Zombie Soul: turning is locked during the burst
+
   const newDir = controlsInverted
     ? { x: -rawDir.x, y: -rawDir.y }
     : rawDir;
@@ -485,13 +695,27 @@ downBtn.addEventListener('click', () => setDirection({ x: 0, y: 1 }));
 leftBtn.addEventListener('click', () => setDirection({ x: -1, y: 0 }));
 rightBtn.addEventListener('click', () => setDirection({ x: 1, y: 0 }));
 
-// ---------- Souls info panel ----------
-function renderSoulsList() {
+// ---------- Souls info panel (3 tabs) ----------
+function renderSoulsList(tab) {
+  const dataByTab = {
+    active: SOULS.filter(s => s.category === 'active' || s.category === 'both'),
+    villain: SOULS.filter(s => s.category === 'villain' || s.category === 'both'),
+    collectibles: [],
+  };
+  const list = dataByTab[tab] || [];
+
   soulsList.innerHTML = '';
-  SOULS.forEach(s => {
+
+  if (list.length === 0) {
+    soulsList.innerHTML = '<li class="souls-empty">Coming soon...</li>';
+    return;
+  }
+
+  list.forEach(s => {
     const li = document.createElement('li');
+    const borderColor = s.border || s.color;
     li.innerHTML = `
-      <span class="soul-dot" style="background:${s.color}"></span>
+      <span class="soul-dot" style="background:${s.color}; border: 2px solid ${borderColor}"></span>
       <div>
         <span class="soul-name">${s.name}</span><span class="soul-rarity">${s.rarity}</span>
         <div class="soul-effect">${s.description}</div>
@@ -500,7 +724,15 @@ function renderSoulsList() {
     soulsList.appendChild(li);
   });
 }
-renderSoulsList();
+renderSoulsList('active');
+
+soulsTabs.forEach(btn => {
+  btn.addEventListener('click', () => {
+    soulsTabs.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderSoulsList(btn.dataset.tab);
+  });
+});
 
 infoToggleBtn.addEventListener('click', () => soulsPanel.classList.toggle('hidden'));
 closeInfoBtn.addEventListener('click', () => soulsPanel.classList.add('hidden'));
@@ -533,7 +765,12 @@ function renderAdminSoulButtons() {
         alert('Start the game first.');
         return;
       }
-      applySoulEffect(s);
+      if (s.id === 'mimic') {
+        food.isMimic = true;
+        food.mimicExpiresAt = Date.now() + MIMIC_DURATION_MS;
+      } else {
+        applySoulEffect(s, snake[0].x, snake[0].y);
+      }
       draw();
     });
     adminSoulButtons.appendChild(btn);
