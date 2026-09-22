@@ -94,6 +94,10 @@ canvas {
   border-color: #FF00AA;
 }
 
+#gameCanvas.skeleton-active {
+  border-color: #ffffff;
+}
+
 .controls {
   margin-top: 16px;
 }

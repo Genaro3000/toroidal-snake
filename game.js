@@ -17,52 +17,52 @@ const ADMIN_KEY = 'ghost1234';
 // category decides which info-panel tab it shows in ('active', 'villain', or 'both').
 const SOULS = [
   {
-    id: 'echo', name: 'Echo Soul', color: '#00F3FF', rarity: 'Common', weight: 32,
+    id: 'echo', name: 'Echo Soul', color: '#00c8ff', rarity: 'Common', weight: 32,
     category: 'active',
     description: 'Standard: gives normal points and grows your body.',
   },
   {
-    id: 'purity', name: 'Purity Soul', color: '#39FF14', rarity: 'Common', weight: 20,
+    id: 'purity', name: 'Purity Soul', color: '#fffbf2', rarity: 'Common', weight: 20,
     category: 'active',
     description: 'Antidote: instantly shrinks your body by 10%.',
   },
   {
-    id: 'rush', name: 'Rush Soul', color: '#FF5E00', rarity: 'Uncommon', weight: 14,
+    id: 'rush', name: 'Rush Soul', color: '#ed7300', rarity: 'Uncommon', weight: 14,
     category: 'active',
     description: 'Sprint: doubles your movement speed for 5 seconds.',
   },
   {
-    id: 'bounty', name: 'Bounty Soul', color: '#FFD700', rarity: 'Uncommon', weight: 10,
+    id: 'bounty', name: 'Bounty Soul', color: '#f2ff00', rarity: 'Uncommon', weight: 10,
     category: 'active',
     description: 'Gold Rush: spawns 5 fast-fading mini-souls worth exponential bonus points for 5 seconds.',
   },
   {
-    id: 'chaos', name: 'Chaos Soul', color: '#8A2BE2', rarity: 'Rare', weight: 6,
+    id: 'chaos', name: 'Chaos Soul', color: '#ff0d00', rarity: 'Rare', weight: 6,
     category: 'active',
     description: 'Inversion: reverses your controls for 7 seconds.',
   },
   {
-    id: 'slime', name: 'Slime Soul', color: '#39FF14', rarity: 'Rare', weight: 5,
+    id: 'slime', name: 'Slime Soul', color: '#00cf34', rarity: 'Rare', weight: 5,
     category: 'active',
     description: 'Sticky Trail: leaves slime behind you for 6 seconds. Crossing your own slime halves your speed.',
   },
   {
-    id: 'void', name: 'Void Soul', color: '#1A0033', glow: '#00F3FF', rarity: 'Rare', weight: 5,
+    id: 'void', name: 'Void Soul', color: '#000000', glow: '#00c8ff', rarity: 'Rare', weight: 5,
     category: 'active',
     description: 'Ghost Mode: pass through your own body for 3 seconds.',
   },
   {
-    id: 'rift', name: 'Rift Soul', color: '#FF00AA', rarity: 'Rare', weight: 5,
+    id: 'rift', name: 'Rift Soul', color: '#f200ae', rarity: 'Rare', weight: 5,
     category: 'active',
     description: 'Warp: scrambles the wrap-around edges for 8 seconds — exits connect to different sides than normal.',
   },
   {
-    id: 'corruption', name: 'Corruption Soul', color: '#FF003C', rarity: 'Legendary', weight: 2,
+    id: 'corruption', name: 'Corruption Soul', color: '#6000a1', rarity: 'Legendary', weight: 2,
     category: 'active',
     description: '10x points, but summons a bot snake that can end your run.',
   },
   {
-    id: 'supernova', name: 'Supernova Soul', color: '#FF3300', rarity: 'Legendary', weight: 1,
+    id: 'supernova', name: 'Supernova Soul', color: '#a17000', rarity: 'Legendary', weight: 1,
     category: 'active',
     description: 'Body Detonation: instantly destroys the back 50% of your tail for massive bonus points.',
   },
@@ -89,7 +89,7 @@ const SOULS = [
   {
     id: 'skeleton', name: 'Skeleton Soul', color: '#ffffff', border: '#8c8c8c', rarity: 'Legendary', weight: 2,
     category: 'villain',
-    description: 'Solid Boundaries: all edges become solid walls for 5 seconds. Hitting one ends your run.',
+    description: 'Solid Boundaries: all edges become solid walls for 6 seconds. Hitting one ends your run.',
   },
   {
     id: 'phantom', name: 'Phantom Soul', color: '#00008c', border: '#46de00', rarity: 'Rare', weight: 4,
@@ -197,6 +197,7 @@ function resetState() {
   miniSouls = [];
   riftActive = false;
   canvas.classList.remove('rift-active');
+  canvas.classList.remove('skeleton-active');
 
   spiderWebCells = [];
   nextTickWebSlowed = false;
@@ -446,8 +447,12 @@ function applySoulEffect(type, atX, atY) {
     case 'skeleton':
       score += BASE_POINTS;
       skeletonActive = true;
+      canvas.classList.add('skeleton-active');
       clearTimeout(skeletonTimeout);
-      skeletonTimeout = setTimeout(() => { skeletonActive = false; }, 5000);
+      skeletonTimeout = setTimeout(() => {
+        skeletonActive = false;
+        canvas.classList.remove('skeleton-active');
+      }, 6000);
       break;
 
     case 'phantom':
