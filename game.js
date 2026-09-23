@@ -67,44 +67,61 @@ const SOULS = [
     description: 'Body Detonation: instantly destroys the back 50% of your tail for massive bonus points.',
   },
   {
-    id: 'mimic', name: 'Mimic Soul', color: '#63310d', border: '#7a2f00', rarity: 'Rare', weight: 0,
-    category: 'both',
-    description: 'Decoy: marks the next soul with a dark orange outline. Eating it while marked is instant death. Avoid it for 5 seconds and it becomes a normal soul.',
-  },
-  {
-    id: 'spider', name: 'Spider Soul', color: '#000000', border: '#960000', rarity: 'Rare', weight: 5,
+    id: 'spider', name: 'Spider Soul', color: '#000000', border: '#960000', rarity: 'Common', weight: 28,
     category: 'villain',
     description: 'Web Trap: triggers a 5x5 cobweb. Your speed is reduced by 70% while you\'re touching it.',
   },
   {
-    id: 'blindness', name: 'Blindness Soul', color: '#000000', border: '#1c004a', rarity: 'Rare', weight: 4,
+    id: 'grave', name: 'Grave Soul', color: '#4d4d4d', border: '#000000', rarity: 'Common', weight: 27,
     category: 'villain',
-    description: 'Fog of War: reduces your sight to just your head for 6 seconds. Everything else turns pitch black.',
+    description: 'Tombstone Hazard: a grave appears where consumed for 10 seconds. Touching it is lethal.',
   },
   {
-    id: 'zombie', name: 'Zombie Soul', color: '#2cde00', border: '#ff26f1', rarity: 'Rare', weight: 4,
-    category: 'villain',
-    description: 'Necrotic Spurt: increases your movement speed for 3 seconds, but turning is locked.',
+    id: 'mimic', name: 'Mimic Soul', color: '#63310d', border: '#7a2f00', rarity: 'Uncommon', weight: 0,
+    category: 'both',
+    description: 'Danger: souls marked with a brown outline are lethal to touch for 5 seconds. After that, the mark fades and it becomes a normal, safe soul.',
   },
   {
-    id: 'skeleton', name: 'Skeleton Soul', color: '#ffffff', border: '#8c8c8c', rarity: 'Legendary', weight: 2,
+    id: 'skeleton', name: 'Skeleton Soul', color: '#ffffff', border: '#8c8c8c', rarity: 'Uncommon', weight: 8,
     category: 'villain',
     description: 'Solid Boundaries: all edges become solid walls for 6 seconds. Hitting one ends your run.',
   },
   {
-    id: 'phantom', name: 'Phantom Soul', color: '#00008c', border: '#46de00', rarity: 'Rare', weight: 4,
+    id: 'phantom', name: 'Phantom Soul', color: '#00008c', border: '#46de00', rarity: 'Uncommon', weight: 5,
     category: 'villain',
-    description: 'Haunted Decoy: spawns an autonomous ghost that travels in a straight line. Touching its path steals 50% of your score.',
+    description: 'Haunted Decoy: spawns an autonomous ghost that travels in a straight line. Touching its path subtracts 50% of your points.',
   },
   {
-    id: 'grave', name: 'Grave Soul', color: '#4d4d4d', border: '#000000', rarity: 'Rare', weight: 4,
+    id: 'mummy', name: 'Mummy Soul', color: '#ffdd9e', border: '#ffffff', rarity: 'Uncommon', weight: 4,
     category: 'villain',
-    description: 'Tombstone Hazard: drops a static tombstone where consumed. It is lethal to touch and vanishes after 8 seconds.',
+    description: 'Wrapped Stiff: locks your movement to 2-cell block steps for 6 seconds, making fine control much harder.',
+  },
+  {
+    id: 'bloody', name: 'Bloody Soul', color: '#591800', border: '#bd1600', rarity: 'Rare', weight: 7,
+    category: 'villain',
+    description: 'Blood Trail: leaves a fatal trace of blood behind you for 5 seconds. Touching old blood is lethal.',
+  },
+  {
+    id: 'shadow', name: 'Shadow Soul', color: '#0a004d', border: '#000000', rarity: 'Rare', weight: 6,
+    category: 'villain',
+    description: 'Doppelganger: a shadow retraces your own path a few steps behind you for 7 seconds. Contact is lethal.',
+  },
+  {
+    id: 'zombie', name: 'Zombie Soul', color: '#2cde00', border: '#ff26f1', rarity: 'Legendary', weight: 3,
+    category: 'villain',
+    description: 'Necrotic Spurt: increases your movement speed for 3 seconds, but turning is locked.',
+  },
+  {
+    id: 'blindness', name: 'Blindness Soul', color: '#000000', border: '#1c004a', rarity: 'Legendary', weight: 2,
+    category: 'villain',
+    description: 'Fog of War: reduces your sight to just your head for 6 seconds. Everything else turns pitch black.',
   },
 ];
 
 // Low chance that any newly spawned soul gets marked as a Mimic.
-const MIMIC_CHANCE = 0.06;
+// (Mimic isn't a real spawnable food — it's a mark applied to whichever
+// soul spawns — so its "10%" from the design list is used as this chance.)
+const MIMIC_CHANCE = 0.10;
 const MIMIC_DURATION_MS = 5000;
 
 function pickWeightedSoul() {
@@ -168,10 +185,16 @@ let zombieActive = false;
 let skeletonActive = false;
 let phantom = null;            // {x,y,dx,dy,path:Set}
 let graveCells = [];           // {x,y,expiresAt}
+let mummyActive = false;
+let bloodyActive = false;
+let bloodCells = new Set();
+let shadowActive = false;
+let shadowTrail = [];          // recent head positions while active
 
 let rushTimeout, chaosTimeout, voidTimeout, botTimeout, slimeTimeout,
   miniSoulsTimeout, riftTimeout, blindnessTimeout,
-  zombieTimeout, skeletonTimeout, phantomTimeout;
+  zombieTimeout, skeletonTimeout, phantomTimeout,
+  mummyTimeout, bloodyTimeout, shadowTimeout;
 
 highscore = Number(localStorage.getItem('snakeHighscore') || 0);
 highscoreEl.textContent = highscore;
@@ -206,6 +229,11 @@ function resetState() {
   skeletonActive = false;
   phantom = null;
   graveCells = [];
+  mummyActive = false;
+  bloodyActive = false;
+  bloodCells = new Set();
+  shadowActive = false;
+  shadowTrail = [];
 
   clearTimeout(rushTimeout);
   clearTimeout(chaosTimeout);
@@ -215,6 +243,9 @@ function resetState() {
   clearTimeout(miniSoulsTimeout);
   clearTimeout(riftTimeout);
   clearTimeout(blindnessTimeout);
+  clearTimeout(mummyTimeout);
+  clearTimeout(bloodyTimeout);
+  clearTimeout(shadowTimeout);
   clearTimeout(zombieTimeout);
   clearTimeout(skeletonTimeout);
   clearTimeout(phantomTimeout);
@@ -244,8 +275,9 @@ function riftWrap(rawX, rawY) {
 // Returns the next head position, or null if Skeleton Soul's solid
 // walls make this move fatal.
 function computeNextHead() {
-  const rawX = snake[0].x + direction.x;
-  const rawY = snake[0].y + direction.y;
+  const step = mummyActive ? 2 : 1;
+  const rawX = snake[0].x + direction.x * step;
+  const rawY = snake[0].y + direction.y * step;
 
   if (skeletonActive) {
     if (rawX < 0 || rawX >= GRID_COLS || rawY < 0 || rawY >= GRID_ROWS) {
@@ -464,6 +496,34 @@ function applySoulEffect(type, atX, atY) {
       score += BASE_POINTS;
       spawnGrave(atX, atY);
       break;
+
+    case 'mummy':
+      score += BASE_POINTS;
+      mummyActive = true;
+      clearTimeout(mummyTimeout);
+      mummyTimeout = setTimeout(() => { mummyActive = false; }, 6000);
+      break;
+
+    case 'bloody':
+      score += BASE_POINTS;
+      bloodyActive = true;
+      clearTimeout(bloodyTimeout);
+      bloodyTimeout = setTimeout(() => {
+        bloodyActive = false;
+        bloodCells = new Set();
+      }, 5000);
+      break;
+
+    case 'shadow':
+      score += BASE_POINTS;
+      shadowActive = true;
+      shadowTrail = [];
+      clearTimeout(shadowTimeout);
+      shadowTimeout = setTimeout(() => {
+        shadowActive = false;
+        shadowTrail = [];
+      }, 7000);
+      break;
   }
   scoreEl.textContent = score;
 }
@@ -491,8 +551,15 @@ function update() {
   const hitBot = botCells.some(c => c.x === head.x && c.y === head.y);
   const hitGrave = graveCells.some(c => c.x === head.x && c.y === head.y);
   const hitLethalMimic = food.isMimic && head.x === food.x && head.y === food.y;
+  const hitBlood = bloodyActive && bloodCells.has(`${head.x},${head.y}`);
 
-  if (hitSelf || hitBot || hitGrave || hitLethalMimic) {
+  const SHADOW_DELAY = 5;
+  const shadowPos = shadowActive && shadowTrail.length >= SHADOW_DELAY
+    ? shadowTrail[shadowTrail.length - SHADOW_DELAY]
+    : null;
+  const hitShadow = shadowPos && shadowPos.x === head.x && shadowPos.y === head.y;
+
+  if (hitSelf || hitBot || hitGrave || hitLethalMimic || hitBlood || hitShadow) {
     return gameOver();
   }
 
@@ -502,10 +569,18 @@ function update() {
   // Spider's web slows you only while you're actually standing on it
   nextTickWebSlowed = spiderWebCells.some(c => c.x === head.x && c.y === head.y);
 
+  if (shadowActive) {
+    shadowTrail.push({ x: head.x, y: head.y });
+  }
+
   snake.unshift(head);
 
   if (slimeActive) {
     snake.forEach(seg => slimeCells.add(`${seg.x},${seg.y}`));
+  }
+
+  if (bloodyActive) {
+    snake.forEach(seg => bloodCells.add(`${seg.x},${seg.y}`));
   }
 
   // Move the Phantom ghost and check if its current cell or trail hits us
@@ -553,6 +628,15 @@ function drawGameContents() {
     });
   }
 
+  // Blood trail (lethal — drawn with a warning-red tint)
+  if (bloodyActive) {
+    ctx.fillStyle = 'rgba(189, 22, 0, 0.45)';
+    bloodCells.forEach(key => {
+      const [x, y] = key.split(',').map(Number);
+      ctx.fillRect(x * CELL_SIZE + 3, y * CELL_SIZE + 3, CELL_SIZE - 6, CELL_SIZE - 6);
+    });
+  }
+
   // Spider webs
   ctx.fillStyle = 'rgba(99, 49, 13, 0.35)';
   spiderWebCells.forEach(c => {
@@ -583,6 +667,21 @@ function drawGameContents() {
     });
     ctx.fillStyle = '#4B0082';
     ctx.fillRect(phantom.x * CELL_SIZE + 1, phantom.y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+  }
+
+  // Shadow Soul: a dark silhouette trailing a few steps behind you
+  if (shadowActive) {
+    const SHADOW_DELAY = 5;
+    const shadowPos = shadowTrail.length >= SHADOW_DELAY
+      ? shadowTrail[shadowTrail.length - SHADOW_DELAY]
+      : null;
+    if (shadowPos) {
+      ctx.fillStyle = '#0a004d';
+      ctx.fillRect(shadowPos.x * CELL_SIZE + 2, shadowPos.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(shadowPos.x * CELL_SIZE + 2, shadowPos.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+    }
   }
 
   // Mini-souls (from Bounty Soul)
