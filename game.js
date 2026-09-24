@@ -27,7 +27,7 @@ const SOULS = [
     description: 'Antidote: instantly shrinks your body by 10%.',
   },
   {
-    id: 'rush', name: 'Rush Soul', color: '#ed7300', rarity: 'Uncommon', weight: 14,
+    id: 'rush', name: 'Rush Soul', color: '#ed7300', rarity: 'Uncommon', weight: 15,
     category: 'active',
     description: 'Sprint: doubles your movement speed for 5 seconds.',
   },
@@ -37,9 +37,9 @@ const SOULS = [
     description: 'Gold Rush: spawns 5 fast-fading mini-souls worth exponential bonus points for 5 seconds.',
   },
   {
-    id: 'chaos', name: 'Chaos Soul', color: '#ff0d00', rarity: 'Rare', weight: 6,
+    id: 'void', name: 'Void Soul', color: '#000000', glow: '#00c8ff', rarity: 'Uncommon', weight: 8,
     category: 'active',
-    description: 'Inversion: reverses your controls for 7 seconds.',
+    description: 'Ghost Mode: pass through your own body for 3 seconds.',
   },
   {
     id: 'slime', name: 'Slime Soul', color: '#00cf34', rarity: 'Rare', weight: 5,
@@ -47,24 +47,24 @@ const SOULS = [
     description: 'Sticky Trail: leaves slime behind you for 6 seconds. Crossing your own slime halves your speed.',
   },
   {
-    id: 'void', name: 'Void Soul', color: '#000000', glow: '#00c8ff', rarity: 'Rare', weight: 5,
+    id: 'hydra', name: 'Hydra Soul', color: '#ff0d00', rarity: 'Rare', weight: 4,
     category: 'active',
-    description: 'Ghost Mode: pass through your own body for 3 seconds.',
+    description: 'Summons 2 ally heads for 10 seconds. Everything they consume gives x2 points.',
   },
   {
-    id: 'rift', name: 'Rift Soul', color: '#f200ae', rarity: 'Rare', weight: 5,
+    id: 'rift', name: 'Rift Soul', color: '#f200ae', rarity: 'Rare', weight: 4,
     category: 'active',
     description: 'Warp: scrambles the wrap-around edges for 8 seconds — exits connect to different sides than normal.',
+  },
+  {
+    id: 'atomic', name: 'Atomic Soul', color: '#a17000', rarity: 'Legendary', weight: 3,
+    category: 'active',
+    description: 'Body Detonation: instantly destroys the back 50% of your tail for massive bonus points.',
   },
   {
     id: 'corruption', name: 'Corruption Soul', color: '#6000a1', rarity: 'Legendary', weight: 2,
     category: 'active',
     description: '10x points, but summons a bot snake that can end your run.',
-  },
-  {
-    id: 'supernova', name: 'Supernova Soul', color: '#a17000', rarity: 'Legendary', weight: 1,
-    category: 'active',
-    description: 'Body Detonation: instantly destroys the back 50% of your tail for massive bonus points.',
   },
   {
     id: 'spider', name: 'Spider Soul', color: '#000000', border: '#960000', rarity: 'Common', weight: 28,
@@ -190,11 +190,13 @@ let bloodyActive = false;
 let bloodCells = new Set();
 let shadowActive = false;
 let shadowTrail = [];          // recent head positions while active
+let hydraActive = false;
+let hydraAllies = [];          // [{x,y}, {x,y}]
 
 let rushTimeout, chaosTimeout, voidTimeout, botTimeout, slimeTimeout,
   miniSoulsTimeout, riftTimeout, blindnessTimeout,
   zombieTimeout, skeletonTimeout, phantomTimeout,
-  mummyTimeout, bloodyTimeout, shadowTimeout;
+  mummyTimeout, bloodyTimeout, shadowTimeout, hydraTimeout;
 
 highscore = Number(localStorage.getItem('snakeHighscore') || 0);
 highscoreEl.textContent = highscore;
@@ -234,6 +236,8 @@ function resetState() {
   bloodCells = new Set();
   shadowActive = false;
   shadowTrail = [];
+  hydraActive = false;
+  hydraAllies = [];
 
   clearTimeout(rushTimeout);
   clearTimeout(chaosTimeout);
@@ -246,6 +250,7 @@ function resetState() {
   clearTimeout(mummyTimeout);
   clearTimeout(bloodyTimeout);
   clearTimeout(shadowTimeout);
+  clearTimeout(hydraTimeout);
   clearTimeout(zombieTimeout);
   clearTimeout(skeletonTimeout);
   clearTimeout(phantomTimeout);
@@ -378,6 +383,19 @@ function spawnPhantom() {
   phantomTimeout = setTimeout(() => { phantom = null; }, 8000);
 }
 
+function spawnHydraAllies() {
+  hydraAllies = [
+    { x: Math.floor(Math.random() * GRID_COLS), y: Math.floor(Math.random() * GRID_ROWS) },
+    { x: Math.floor(Math.random() * GRID_COLS), y: Math.floor(Math.random() * GRID_ROWS) },
+  ];
+  hydraActive = true;
+  clearTimeout(hydraTimeout);
+  hydraTimeout = setTimeout(() => {
+    hydraActive = false;
+    hydraAllies = [];
+  }, 10000);
+}
+
 function applySoulEffect(type, atX, atY) {
   switch (type.id) {
     case 'echo':
@@ -440,12 +458,17 @@ function applySoulEffect(type, atX, atY) {
       }, 8000);
       break;
 
+    case 'hydra':
+      score += BASE_POINTS;
+      spawnHydraAllies();
+      break;
+
     case 'corruption':
       score += BASE_POINTS * 10;
       spawnBotSnake();
       break;
 
-    case 'supernova': {
+    case 'atomic': {
       const destroyCount = Math.min(
         Math.max(1, Math.floor(snake.length * 0.5)),
         snake.length - 1
@@ -616,6 +639,25 @@ function update() {
   } else {
     snake.pop();
   }
+
+  // Hydra allies chase the current soul on their own; whatever they reach
+  // gives you double points automatically.
+  if (hydraActive) {
+    hydraAllies.forEach(ally => {
+      const dx = food.x - ally.x;
+      const dy = food.y - ally.y;
+      if (Math.abs(dx) >= Math.abs(dy) && dx !== 0) {
+        ally.x = wrap(ally.x + Math.sign(dx), GRID_COLS);
+      } else if (dy !== 0) {
+        ally.y = wrap(ally.y + Math.sign(dy), GRID_ROWS);
+      }
+      if (!food.isMimic && ally.x === food.x && ally.y === food.y) {
+        score += BASE_POINTS * 2;
+        scoreEl.textContent = score;
+        placeFood();
+      }
+    });
+  }
 }
 
 function drawGameContents() {
@@ -702,6 +744,14 @@ function drawGameContents() {
     ctx.strokeStyle = '#7a2f00';
     ctx.lineWidth = 3;
     ctx.strokeRect(food.x * CELL_SIZE, food.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+  }
+
+  // Hydra allies
+  if (hydraActive) {
+    ctx.fillStyle = '#ff0d00';
+    hydraAllies.forEach(a => {
+      ctx.fillRect(a.x * CELL_SIZE + 3, a.y * CELL_SIZE + 3, CELL_SIZE - 6, CELL_SIZE - 6);
+    });
   }
 
   // Snake
