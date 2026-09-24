@@ -213,26 +213,15 @@ button:disabled {
   font-size: 0.95rem;
 }
 
-.leaderboard {
-  margin-top: 24px;
-  text-align: left;
-}
-
-.leaderboard h2 {
-  color: #ff6600;
-  font-size: 1.1rem;
-  margin-bottom: 8px;
-  text-align: center;
-}
-
 #leaderboardList {
   list-style: none;
-  background: #111622;
+  background: #0a0d14;
   border: 2px solid #00ffcc;
   border-radius: 8px;
   padding: 10px 16px;
-  max-width: 400px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 14px 0;
+  text-align: left;
 }
 
 #leaderboardList li {

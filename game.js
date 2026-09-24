@@ -1,6 +1,6 @@
 // This file only runs on game.html
 import { db } from './firebase-init.js';
-import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const CELL_SIZE = 20;
 const GRID_COLS = 20;
@@ -829,11 +829,17 @@ function gameOver() {
 async function submitScore(finalScore) {
   const name = localStorage.getItem('playerName') || 'Anonymous';
   try {
-    await addDoc(collection(db, 'scores'), {
-      name,
-      score: finalScore,
-      timestamp: serverTimestamp(),
-    });
+    const scoreRef = doc(db, 'scores', name);
+    const existing = await getDoc(scoreRef);
+    const previousBest = existing.exists() ? existing.data().score : -1;
+
+    if (finalScore > previousBest) {
+      await setDoc(scoreRef, {
+        name,
+        score: finalScore,
+        timestamp: serverTimestamp(),
+      });
+    }
   } catch (err) {
     console.error('Could not save score to leaderboard', err);
   }

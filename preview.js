@@ -28,13 +28,17 @@ nameInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') saveName();
 });
 
-// ---------- Leaderboard (top 10, shared across everyone) ----------
+// ---------- Leaderboard (top 10, shared across everyone) — now a popup ----------
 import { db } from './firebase-init.js';
 import { collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const leaderboardList = document.getElementById('leaderboardList');
+const leaderboardBtn = document.getElementById('leaderboardBtn');
+const leaderboardModal = document.getElementById('leaderboardModal');
+const closeLeaderboardBtn = document.getElementById('closeLeaderboardBtn');
 
 async function loadLeaderboard() {
+  leaderboardList.innerHTML = '<li>Loading...</li>';
   try {
     const q = query(collection(db, 'scores'), orderBy('score', 'desc'), limit(10));
     const snapshot = await getDocs(q);
@@ -57,7 +61,11 @@ async function loadLeaderboard() {
   }
 }
 
-loadLeaderboard();
+leaderboardBtn.addEventListener('click', () => {
+  leaderboardModal.classList.remove('hidden');
+  loadLeaderboard(); // fetch fresh each time it opens
+});
+closeLeaderboardBtn.addEventListener('click', () => leaderboardModal.classList.add('hidden'));
 
 // This file only runs on index.html — it just draws a static
 // snake + food on the small preview canvas. No game logic here.

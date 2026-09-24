@@ -14,13 +14,7 @@
     <p id="greeting" class="greeting hidden"></p>
     <div class="controls">
       <a href="game.html" class="btn-link">Play</a>
-    </div>
-
-    <div class="leaderboard">
-      <h2>Top 10</h2>
-      <ol id="leaderboardList">
-        <li>Loading...</li>
-      </ol>
+      <button id="leaderboardBtn" class="btn-link secondary">🏆 Leaderboard</button>
     </div>
   </div>
 
@@ -30,6 +24,16 @@
       <p>What should we call you?</p>
       <input id="nameInput" type="text" placeholder="Your Discord name" maxlength="20" />
       <button id="nameSubmitBtn">Let's go</button>
+    </div>
+  </div>
+
+  <div id="leaderboardModal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Top 10</h2>
+      <ol id="leaderboardList">
+        <li>Loading...</li>
+      </ol>
+      <button id="closeLeaderboardBtn" class="btn-link secondary">Close</button>
     </div>
   </div>
 
