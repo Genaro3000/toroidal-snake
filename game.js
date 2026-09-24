@@ -49,7 +49,7 @@ const SOULS = [
   {
     id: 'hydra', name: 'Hydra Soul', color: '#ff0d00', rarity: 'Rare', weight: 4,
     category: 'active',
-    description: 'Summons 2 ally heads for 10 seconds. Everything they consume gives x2 points.',
+    description: 'Summons 2 ally heads that each chase down and consume one soul for x2 points, then vanish.',
   },
   {
     id: 'rift', name: 'Rift Soul', color: '#f200ae', rarity: 'Rare', weight: 4,
@@ -641,8 +641,10 @@ function update() {
   }
 
   // Hydra allies chase the current soul on their own; whatever they reach
-  // gives you double points automatically.
+  // gives you double points automatically. Each ally only gets ONE catch,
+  // then it disappears — otherwise this would farm infinite points.
   if (hydraActive) {
+    const survivors = [];
     hydraAllies.forEach(ally => {
       const dx = food.x - ally.x;
       const dy = food.y - ally.y;
@@ -655,8 +657,16 @@ function update() {
         score += BASE_POINTS * 2;
         scoreEl.textContent = score;
         placeFood();
+        // ally used up its one catch — don't add it back, it vanishes
+      } else {
+        survivors.push(ally);
       }
     });
+    hydraAllies = survivors;
+    if (hydraAllies.length === 0) {
+      hydraActive = false;
+      clearTimeout(hydraTimeout);
+    }
   }
 }
 
