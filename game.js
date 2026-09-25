@@ -78,7 +78,7 @@ const SOULS = [
   },
   {
     id: 'mimic', name: 'Mimic Soul', color: '#63310d', border: '#7a2f00', rarity: 'Uncommon', weight: 0,
-    category: 'both',
+    category: 'villain',
     description: 'Danger: souls marked with a brown outline are lethal to touch for 5 seconds. After that, the mark fades and it becomes a normal, safe soul.',
   },
   {
@@ -117,6 +117,57 @@ const SOULS = [
     description: 'Fog of War: reduces your sight to just your head for 6 seconds. Everything else turns pitch black.',
   },
 ];
+
+// ---------- Collectibles (cosmetic unlocks, 1% spawn chance each) ----------
+// Once unlocked, a collectible stops spawning and shows as obtained in the
+// info panel. Names/functions marked '???' are placeholders for now.
+const COLLECTIBLE_CHANCE = 0.01;
+const COLLECTIBLES = [
+  {
+    id: 'pumpkin', emoji: '🎃', name: '???',
+    description: 'Unlocks an orange-and-black checkered pattern for your snake (2 orange squares, 1 black, repeating).',
+  },
+  { id: 'bat', emoji: '🦇', name: '???', description: '' },
+  {
+    id: 'zombie', emoji: '🧟', name: '???',
+    description: 'Unlocks a zombie skin: pink head, body in varying shades of green.',
+  },
+  {
+    id: 'grave', emoji: '🪦', name: '???',
+    description: 'Unlocks customizable traces.',
+  },
+  {
+    id: 'candy', emoji: '🍬', name: '???',
+    description: 'Unlocks a colorful pattern for your snake.',
+  },
+  {
+    id: 'moon', emoji: '🌕', name: '???',
+    description: 'Changes your snake\'s squared body shape to a rounded one.',
+  },
+  {
+    id: 'crescent', emoji: '🌙', name: '???',
+    description: 'Changes the final tip of your snake to a triangular shape.',
+  },
+  { id: 'tornado', emoji: '🌪️', name: '???', description: '' },
+  { id: 'wolf', emoji: '🐺', name: '???', description: '' },
+  { id: 'house', emoji: '🏚️', name: '???', description: '' },
+];
+
+function getUnlockedCollectibles() {
+  try {
+    return JSON.parse(localStorage.getItem('unlockedCollectibles') || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function unlockCollectible(id) {
+  const unlocked = getUnlockedCollectibles();
+  if (!unlocked.includes(id)) {
+    unlocked.push(id);
+    localStorage.setItem('unlockedCollectibles', JSON.stringify(unlocked));
+  }
+}
 
 // Low chance that any newly spawned soul gets marked as a Mimic.
 // (Mimic isn't a real spawnable food — it's a mark applied to whichever
@@ -160,6 +211,8 @@ const closeAdminBtn = document.getElementById('closeAdminBtn');
 const adminLengthInput = document.getElementById('adminLengthInput');
 const adminSetLengthBtn = document.getElementById('adminSetLengthBtn');
 const adminSoulButtons = document.getElementById('adminSoulButtons');
+const adminCollectibleButtons = document.getElementById('adminCollectibleButtons');
+const adminResetCollectiblesBtn = document.getElementById('adminResetCollectiblesBtn');
 
 // ---------- Game state ----------
 let snake, direction, nextDirection, food, score, highscore;
@@ -299,18 +352,30 @@ function computeNextHead() {
 }
 
 function placeFood() {
+  const unlocked = getUnlockedCollectibles();
+  const lockedCollectibles = COLLECTIBLES.filter(c => !unlocked.includes(c.id));
+  let chosenCollectible = null;
+  for (const c of lockedCollectibles) {
+    if (Math.random() < COLLECTIBLE_CHANCE) {
+      chosenCollectible = c;
+      break;
+    }
+  }
+
   let newFood;
   do {
     newFood = {
       x: Math.floor(Math.random() * GRID_COLS),
       y: Math.floor(Math.random() * GRID_ROWS),
-      type: pickWeightedSoul(),
+      isCollectible: !!chosenCollectible,
+      collectible: chosenCollectible,
+      type: chosenCollectible ? null : pickWeightedSoul(),
       isMimic: false,
       mimicExpiresAt: 0,
     };
   } while (snake.some(seg => seg.x === newFood.x && seg.y === newFood.y));
 
-  if (Math.random() < MIMIC_CHANCE) {
+  if (!chosenCollectible && Math.random() < MIMIC_CHANCE) {
     newFood.isMimic = true;
     newFood.mimicExpiresAt = Date.now() + MIMIC_DURATION_MS;
   }
@@ -632,10 +697,17 @@ function update() {
     if (food.isMimic) {
       return gameOver(); // Mimic Soul: eating it while marked is instant death
     }
-    const eatenX = food.x;
-    const eatenY = food.y;
-    applySoulEffect(food.type, eatenX, eatenY);
-    placeFood();
+    if (food.isCollectible) {
+      unlockCollectible(food.collectible.id);
+      score += BASE_POINTS;
+      scoreEl.textContent = score;
+      placeFood();
+    } else {
+      const eatenX = food.x;
+      const eatenY = food.y;
+      applySoulEffect(food.type, eatenX, eatenY);
+      placeFood();
+    }
   } else {
     snake.pop();
   }
@@ -742,18 +814,25 @@ function drawGameContents() {
     ctx.fillRect(m.x * CELL_SIZE + 6, m.y * CELL_SIZE + 6, CELL_SIZE - 12, CELL_SIZE - 12);
   });
 
-  // Soul (food)
-  ctx.fillStyle = food.type.color;
-  ctx.fillRect(food.x * CELL_SIZE + 2, food.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-  if (food.type.glow) {
-    ctx.strokeStyle = food.type.glow;
-    ctx.lineWidth = 2;
-    ctx.strokeRect(food.x * CELL_SIZE + 2, food.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-  }
-  if (food.isMimic) {
-    ctx.strokeStyle = '#7a2f00';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(food.x * CELL_SIZE, food.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+  // Soul (food) or Collectible
+  if (food.isCollectible) {
+    ctx.font = `${CELL_SIZE - 2}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(food.collectible.emoji, food.x * CELL_SIZE + CELL_SIZE / 2, food.y * CELL_SIZE + CELL_SIZE / 2 + 1);
+  } else {
+    ctx.fillStyle = food.type.color;
+    ctx.fillRect(food.x * CELL_SIZE + 2, food.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+    if (food.type.glow) {
+      ctx.strokeStyle = food.type.glow;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(food.x * CELL_SIZE + 2, food.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+    }
+    if (food.isMimic) {
+      ctx.strokeStyle = '#7a2f00';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(food.x * CELL_SIZE, food.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    }
   }
 
   // Hydra allies
@@ -867,10 +946,14 @@ rightBtn.addEventListener('click', () => setDirection({ x: 1, y: 0 }));
 
 // ---------- Souls info panel (3 tabs) ----------
 function renderSoulsList(tab) {
+  if (tab === 'collectibles') {
+    renderCollectiblesList();
+    return;
+  }
+
   const dataByTab = {
     active: SOULS.filter(s => s.category === 'active' || s.category === 'both'),
     villain: SOULS.filter(s => s.category === 'villain' || s.category === 'both'),
-    collectibles: [],
   };
   const list = dataByTab[tab] || [];
 
@@ -889,6 +972,24 @@ function renderSoulsList(tab) {
       <div>
         <span class="soul-name">${s.name}</span><span class="soul-rarity">${s.rarity}</span>
         <div class="soul-effect">${s.description}</div>
+      </div>
+    `;
+    soulsList.appendChild(li);
+  });
+}
+
+function renderCollectiblesList() {
+  const unlocked = getUnlockedCollectibles();
+  soulsList.innerHTML = '';
+  COLLECTIBLES.forEach(c => {
+    const isUnlocked = unlocked.includes(c.id);
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <span class="soul-dot collectible-emoji">${c.emoji}</span>
+      <div>
+        <span class="soul-name">${c.name}</span><span class="soul-rarity">1%</span>
+        <div class="soul-effect">${c.description || 'Function TBD.'}</div>
+        <div class="collectible-status ${isUnlocked ? 'unlocked' : ''}">${isUnlocked ? '✅ Already obtained' : '🔒 Locked'}</div>
       </div>
     `;
     soulsList.appendChild(li);
@@ -947,14 +1048,39 @@ function renderAdminSoulButtons() {
   });
 }
 
+function renderAdminCollectibleButtons() {
+  adminCollectibleButtons.innerHTML = '';
+  COLLECTIBLES.forEach(c => {
+    const btn = document.createElement('button');
+    btn.textContent = `${c.emoji} ${c.name}`;
+    btn.addEventListener('click', () => {
+      if (!snake || snake.length === 0) {
+        alert('Start the game first.');
+        return;
+      }
+      food.isCollectible = true;
+      food.collectible = c;
+      food.type = null;
+      food.isMimic = false;
+      draw();
+    });
+    adminCollectibleButtons.appendChild(btn);
+  });
+}
+
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('admin') === ADMIN_KEY) {
   adminToggleBtn.classList.remove('hidden');
   adminToggleBtn.addEventListener('click', () => adminPanel.classList.toggle('hidden'));
   closeAdminBtn.addEventListener('click', () => adminPanel.classList.add('hidden'));
   renderAdminSoulButtons();
+  renderAdminCollectibleButtons();
   adminSetLengthBtn.addEventListener('click', () => {
     setSnakeLength(Number(adminLengthInput.value));
+  });
+  adminResetCollectiblesBtn.addEventListener('click', () => {
+    localStorage.removeItem('unlockedCollectibles');
+    alert('Unlocked collectibles reset.');
   });
 }
 

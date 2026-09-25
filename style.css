@@ -385,6 +385,27 @@ button:disabled {
   margin-top: 2px;
 }
 
+.collectible-emoji {
+  background: none !important;
+  border: none !important;
+  font-size: 1.4rem;
+  width: auto;
+  height: auto;
+  display: inline-flex;
+  align-items: flex-start;
+  margin-top: 3px;
+}
+
+.collectible-status {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.collectible-status.unlocked {
+  color: #00ff99;
+}
+
 .souls-empty {
   color: #6b7280;
   text-align: center;
