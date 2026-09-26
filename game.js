@@ -121,7 +121,7 @@ const SOULS = [
 // ---------- Collectibles (cosmetic unlocks, 1% spawn chance each) ----------
 // Once unlocked, a collectible stops spawning and shows as obtained in the
 // info panel. Names/functions marked '???' are placeholders for now.
-const COLLECTIBLE_CHANCE = 0.01;
+const COLLECTIBLE_CHANCE = 0.005;
 const COLLECTIBLES = [
   {
     id: 'pumpkin', emoji: '🎃', name: '???',
@@ -823,8 +823,9 @@ function drawGameContents() {
   } else {
     ctx.fillStyle = food.type.color;
     ctx.fillRect(food.x * CELL_SIZE + 2, food.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-    if (food.type.glow) {
-      ctx.strokeStyle = food.type.glow;
+    const outline = food.type.border || food.type.glow;
+    if (outline) {
+      ctx.strokeStyle = outline;
       ctx.lineWidth = 2;
       ctx.strokeRect(food.x * CELL_SIZE + 2, food.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
     }
@@ -987,7 +988,7 @@ function renderCollectiblesList() {
     li.innerHTML = `
       <span class="soul-dot collectible-emoji">${c.emoji}</span>
       <div>
-        <span class="soul-name">${c.name}</span><span class="soul-rarity">1%</span>
+        <span class="soul-name">${c.name}</span><span class="soul-rarity">0.5%</span>
         <div class="soul-effect">${c.description || 'Function TBD.'}</div>
         <div class="collectible-status ${isUnlocked ? 'unlocked' : ''}">${isUnlocked ? '✅ Already obtained' : '🔒 Locked'}</div>
       </div>
