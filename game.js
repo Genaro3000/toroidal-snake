@@ -109,7 +109,7 @@ const SOULS = [
   {
     id: 'zombie', name: 'Zombie Soul', color: '#2cde00', border: '#ff26f1', rarity: 'Legendary', weight: 3,
     category: 'villain',
-    description: 'Necrotic Spurt: increases your movement speed for 3 seconds, but turning is locked.',
+    description: 'Inversion: reverses your controls for 4 seconds.',
   },
   {
     id: 'blindness', name: 'Blindness Soul', color: '#000000', border: '#1c004a', rarity: 'Legendary', weight: 2,
@@ -234,7 +234,6 @@ let riftActive = false;
 let spiderWebCells = [];       // {x,y,expiresAt}
 let nextTickWebSlowed = false;
 let blindnessActive = false;
-let zombieActive = false;
 let skeletonActive = false;
 let phantom = null;            // {x,y,dx,dy,path:Set}
 let graveCells = [];           // {x,y,expiresAt}
@@ -280,7 +279,6 @@ function resetState() {
   spiderWebCells = [];
   nextTickWebSlowed = false;
   blindnessActive = false;
-  zombieActive = false;
   skeletonActive = false;
   phantom = null;
   graveCells = [];
@@ -559,9 +557,9 @@ function applySoulEffect(type, atX, atY) {
 
     case 'zombie':
       score += BASE_POINTS;
-      zombieActive = true;
+      controlsInverted = true;
       clearTimeout(zombieTimeout);
-      zombieTimeout = setTimeout(() => { zombieActive = false; }, 3000);
+      zombieTimeout = setTimeout(() => { controlsInverted = false; }, 4000);
       break;
 
     case 'skeleton':
@@ -878,7 +876,6 @@ function loop() {
     let delay = INITIAL_SPEED_MS / speedMultiplier;
     if (nextTickSlowed) delay *= 2;
     if (nextTickWebSlowed) delay /= 0.3; // 70% slower
-    if (zombieActive) delay = INITIAL_SPEED_MS / 4; // hyper-speed overrides everything
     gameLoopId = setTimeout(loop, delay);
   }
 }
@@ -926,8 +923,6 @@ async function submitScore(finalScore) {
 }
 
 function setDirection(rawDir) {
-  if (zombieActive) return; // Zombie Soul: turning is locked during the burst
-
   const newDir = controlsInverted
     ? { x: -rawDir.x, y: -rawDir.y }
     : rawDir;
