@@ -17,62 +17,62 @@ const ADMIN_KEY = 'ghost1234';
 // category decides which info-panel tab it shows in ('active', 'villain', or 'both').
 const SOULS = [
   {
-    id: 'echo', name: 'Echo Soul', color: '#00c8ff', rarity: 'Common', weight: 32,
+    id: 'echo', name: 'Echo Soul', color: '#00c8ff', rarity: 'Common', weight: 25,
     category: 'active',
     description: 'Standard: gives normal points and grows your body.',
   },
   {
-    id: 'purity', name: 'Purity Soul', color: '#fffbf2', rarity: 'Common', weight: 20,
+    id: 'purity', name: 'Purity Soul', color: '#fffbf2', rarity: 'Common', weight: 15,
     category: 'active',
     description: 'Antidote: instantly shrinks your body by 10%.',
   },
   {
-    id: 'rush', name: 'Rush Soul', color: '#ed7300', rarity: 'Uncommon', weight: 15,
+    id: 'rush', name: 'Rush Soul', color: '#ed7300', rarity: 'Uncommon', weight: 7,
     category: 'active',
     description: 'Sprint: doubles your movement speed for 5 seconds.',
   },
   {
-    id: 'bounty', name: 'Bounty Soul', color: '#f2ff00', rarity: 'Uncommon', weight: 10,
+    id: 'bounty', name: 'Bounty Soul', color: '#f2ff00', rarity: 'Uncommon', weight: 6,
     category: 'active',
     description: 'Gold Rush: spawns 5 fast-fading mini-souls worth exponential bonus points for 5 seconds.',
   },
   {
-    id: 'void', name: 'Void Soul', color: '#000000', glow: '#00c8ff', rarity: 'Uncommon', weight: 8,
+    id: 'void', name: 'Void Soul', color: '#000000', glow: '#00c8ff', rarity: 'Uncommon', weight: 5,
     category: 'active',
     description: 'Ghost Mode: pass through your own body for 3 seconds.',
   },
   {
-    id: 'slime', name: 'Slime Soul', color: '#00cf34', rarity: 'Rare', weight: 5,
+    id: 'slime', name: 'Slime Soul', color: '#00cf34', rarity: 'Rare', weight: 2,
     category: 'active',
     description: 'Sticky Trail: leaves slime behind you for 6 seconds. Crossing your own slime halves your speed.',
   },
   {
-    id: 'hydra', name: 'Hydra Soul', color: '#ff0d00', rarity: 'Rare', weight: 4,
+    id: 'hydra', name: 'Hydra Soul', color: '#ff0d00', rarity: 'Rare', weight: 1.5,
     category: 'active',
     description: 'Summons 2 ally heads that each chase down and consume one soul for x2 points, then vanish.',
   },
   {
-    id: 'rift', name: 'Rift Soul', color: '#f200ae', rarity: 'Rare', weight: 4,
+    id: 'rift', name: 'Rift Soul', color: '#f200ae', rarity: 'Rare', weight: 1.5,
     category: 'active',
     description: 'Warp: scrambles the wrap-around edges for 8 seconds — exits connect to different sides than normal.',
   },
   {
-    id: 'atomic', name: 'Atomic Soul', color: '#a17000', rarity: 'Legendary', weight: 3,
+    id: 'atomic', name: 'Atomic Soul', color: '#a17000', rarity: 'Legendary', weight: 0.6,
     category: 'active',
     description: 'Body Detonation: instantly destroys the back 50% of your tail for massive bonus points.',
   },
   {
-    id: 'corruption', name: 'Corruption Soul', color: '#6000a1', rarity: 'Legendary', weight: 2,
+    id: 'corruption', name: 'Corruption Soul', color: '#6000a1', rarity: 'Legendary', weight: 0.4,
     category: 'active',
     description: '10x points, but summons a bot snake that can end your run.',
   },
   {
-    id: 'spider', name: 'Spider Soul', color: '#000000', border: '#960000', rarity: 'Common', weight: 28,
+    id: 'spider', name: 'Spider Soul', color: '#000000', border: '#960000', rarity: 'Common', weight: 12,
     category: 'villain',
     description: 'Web Trap: triggers a 5x5 cobweb. Your speed is reduced by 70% while you\'re touching it.',
   },
   {
-    id: 'grave', name: 'Grave Soul', color: '#4d4d4d', border: '#000000', rarity: 'Common', weight: 27,
+    id: 'grave', name: 'Grave Soul', color: '#4d4d4d', border: '#000000', rarity: 'Common', weight: 8,
     category: 'villain',
     description: 'Tombstone Hazard: a grave appears where consumed for 10 seconds. Touching it is lethal.',
   },
@@ -82,12 +82,12 @@ const SOULS = [
     description: 'Danger: souls marked with a brown outline are lethal to touch for 5 seconds. After that, the mark fades and it becomes a normal, safe soul.',
   },
   {
-    id: 'skeleton', name: 'Skeleton Soul', color: '#ffffff', border: '#8c8c8c', rarity: 'Uncommon', weight: 8,
+    id: 'skeleton', name: 'Skeleton Soul', color: '#ffffff', border: '#8c8c8c', rarity: 'Uncommon', weight: 4,
     category: 'villain',
     description: 'Solid Boundaries: all edges become solid walls for 6 seconds. Hitting one ends your run.',
   },
   {
-    id: 'phantom', name: 'Phantom Soul', color: '#00008c', border: '#46de00', rarity: 'Uncommon', weight: 5,
+    id: 'phantom', name: 'Phantom Soul', color: '#00008c', border: '#46de00', rarity: 'Uncommon', weight: 4,
     category: 'villain',
     description: 'Haunted Decoy: spawns an autonomous ghost that travels in a straight line. Touching its path subtracts 50% of your points.',
   },
@@ -97,22 +97,22 @@ const SOULS = [
     description: 'Wrapped Stiff: locks your movement to 2-cell block steps for 6 seconds, making fine control much harder.',
   },
   {
-    id: 'bloody', name: 'Bloody Soul', color: '#591800', border: '#bd1600', rarity: 'Rare', weight: 7,
+    id: 'bloody', name: 'Bloody Soul', color: '#591800', border: '#bd1600', rarity: 'Rare', weight: 1.5,
     category: 'villain',
     description: 'Blood Trail: leaves a fatal trace of blood behind you for 5 seconds. Touching old blood is lethal.',
   },
   {
-    id: 'shadow', name: 'Shadow Soul', color: '#0a004d', border: '#000000', rarity: 'Rare', weight: 6,
+    id: 'shadow', name: 'Shadow Soul', color: '#0a004d', border: '#000000', rarity: 'Rare', weight: 1.5,
     category: 'villain',
     description: 'Doppelganger: a shadow retraces your own path a few steps behind you for 7 seconds. Contact is lethal.',
   },
   {
-    id: 'zombie', name: 'Zombie Soul', color: '#2cde00', border: '#ff26f1', rarity: 'Legendary', weight: 3,
+    id: 'zombie', name: 'Zombie Soul', color: '#2cde00', border: '#ff26f1', rarity: 'Legendary', weight: 0.6,
     category: 'villain',
     description: 'Inversion: reverses your controls for 4 seconds.',
   },
   {
-    id: 'blindness', name: 'Blindness Soul', color: '#000000', border: '#1c004a', rarity: 'Legendary', weight: 2,
+    id: 'blindness', name: 'Blindness Soul', color: '#000000', border: '#1c004a', rarity: 'Legendary', weight: 0.4,
     category: 'villain',
     description: 'Fog of War: reduces your sight to just your head for 6 seconds. Everything else turns pitch black.',
   },
@@ -172,7 +172,7 @@ function unlockCollectible(id) {
 // Low chance that any newly spawned soul gets marked as a Mimic.
 // (Mimic isn't a real spawnable food — it's a mark applied to whichever
 // soul spawns — so its "10%" from the design list is used as this chance.)
-const MIMIC_CHANCE = 0.10;
+const MIMIC_CHANCE = 0.06;
 const MIMIC_DURATION_MS = 5000;
 
 function pickWeightedSoul() {
