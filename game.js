@@ -94,7 +94,7 @@ const SOULS = [
   {
     id: 'mummy', name: 'Mummy Soul', color: '#ffdd9e', border: '#ffffff', rarity: 'Uncommon', weight: 4,
     category: 'villain',
-    description: 'Wrapped Stiff: locks your movement to 2-cell block steps for 6 seconds, making fine control much harder.',
+    description: 'Wrapped Stiff: for 6 seconds your snake turns bandage-colored and its speed randomly bursts fast/slow in 3 two-second phases.',
   },
   {
     id: 'bloody', name: 'Bloody Soul', color: '#591800', border: '#bd1600', rarity: 'Rare', weight: 1.5,
@@ -238,6 +238,7 @@ let skeletonActive = false;
 let phantom = null;            // {x,y,dx,dy,path:Set}
 let graveCells = [];           // {x,y,expiresAt}
 let mummyActive = false;
+let mummySpeedMultiplier = 1;
 let bloodyActive = false;
 let bloodCells = new Set();
 let shadowActive = false;
@@ -248,7 +249,7 @@ let hydraAllies = [];          // [{x,y}, {x,y}]
 let rushTimeout, chaosTimeout, voidTimeout, botTimeout, slimeTimeout,
   miniSoulsTimeout, riftTimeout, blindnessTimeout,
   zombieTimeout, skeletonTimeout, phantomTimeout,
-  mummyTimeout, bloodyTimeout, shadowTimeout, hydraTimeout;
+  mummyTimeout, bloodyTimeout, shadowTimeout, hydraTimeout, mummyBurstTimeout;
 
 highscore = Number(localStorage.getItem('snakeHighscore') || 0);
 highscoreEl.textContent = highscore;
@@ -283,6 +284,7 @@ function resetState() {
   phantom = null;
   graveCells = [];
   mummyActive = false;
+  mummySpeedMultiplier = 1;
   bloodyActive = false;
   bloodCells = new Set();
   shadowActive = false;
@@ -299,6 +301,7 @@ function resetState() {
   clearTimeout(riftTimeout);
   clearTimeout(blindnessTimeout);
   clearTimeout(mummyTimeout);
+  clearTimeout(mummyBurstTimeout);
   clearTimeout(bloodyTimeout);
   clearTimeout(shadowTimeout);
   clearTimeout(hydraTimeout);
@@ -331,9 +334,8 @@ function riftWrap(rawX, rawY) {
 // Returns the next head position, or null if Skeleton Soul's solid
 // walls make this move fatal.
 function computeNextHead() {
-  const step = mummyActive ? 2 : 1;
-  const rawX = snake[0].x + direction.x * step;
-  const rawY = snake[0].y + direction.y * step;
+  const rawX = snake[0].x + direction.x;
+  const rawY = snake[0].y + direction.y;
 
   if (skeletonActive) {
     if (rawX < 0 || rawX >= GRID_COLS || rawY < 0 || rawY >= GRID_ROWS) {
@@ -444,6 +446,24 @@ function spawnPhantom() {
   };
   clearTimeout(phantomTimeout);
   phantomTimeout = setTimeout(() => { phantom = null; }, 8000);
+}
+
+function scheduleMummyBursts() {
+  const options = [0.35, 0.5, 0.7, 1.6, 2, 2.4]; // slow...fast, picked randomly
+  const pickBurst = () => options[Math.floor(Math.random() * options.length)];
+
+  mummySpeedMultiplier = pickBurst();
+  clearTimeout(mummyBurstTimeout);
+
+  let remainingBursts = 2; // 2 more changes after this first one = 3 total
+  function nextBurst() {
+    mummyBurstTimeout = setTimeout(() => {
+      mummySpeedMultiplier = pickBurst();
+      remainingBursts--;
+      if (remainingBursts > 0) nextBurst();
+    }, 2000);
+  }
+  nextBurst();
 }
 
 function spawnHydraAllies() {
@@ -586,8 +606,13 @@ function applySoulEffect(type, atX, atY) {
     case 'mummy':
       score += BASE_POINTS;
       mummyActive = true;
+      scheduleMummyBursts();
       clearTimeout(mummyTimeout);
-      mummyTimeout = setTimeout(() => { mummyActive = false; }, 6000);
+      mummyTimeout = setTimeout(() => {
+        mummyActive = false;
+        mummySpeedMultiplier = 1;
+        clearTimeout(mummyBurstTimeout);
+      }, 6000);
       break;
 
     case 'bloody':
@@ -844,7 +869,11 @@ function drawGameContents() {
 
   // Snake
   snake.forEach((seg, i) => {
-    ctx.fillStyle = i === 0 ? '#66ffcc' : '#00ff99';
+    if (mummyActive) {
+      ctx.fillStyle = i === 0 ? '#ffffff' : '#ffdd9e';
+    } else {
+      ctx.fillStyle = i === 0 ? '#66ffcc' : '#00ff99';
+    }
     ctx.fillRect(seg.x * CELL_SIZE + 1, seg.y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
   });
 }
@@ -876,6 +905,7 @@ function loop() {
     let delay = INITIAL_SPEED_MS / speedMultiplier;
     if (nextTickSlowed) delay *= 2;
     if (nextTickWebSlowed) delay /= 0.3; // 70% slower
+    if (mummyActive) delay /= mummySpeedMultiplier;
     gameLoopId = setTimeout(loop, delay);
   }
 }
