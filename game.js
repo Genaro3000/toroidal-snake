@@ -5,7 +5,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/fi
 const CELL_SIZE = 20;
 const GRID_COLS = 20;
 const GRID_ROWS = 20;
-const INITIAL_SPEED_MS = 130;
+const INITIAL_SPEED_MS = 135;
 const BASE_POINTS = 10;
 
 // Change this to whatever secret word you want in the URL,
@@ -219,6 +219,7 @@ const adminResetCollectiblesBtn = document.getElementById('adminResetCollectible
 // ---------- Game state ----------
 let snake, direction, nextDirection, food, score, highscore;
 let gameLoopId = null;
+let nextTickAt = 0; // scheduled time of the next tick, used to keep the pace steady
 let isRunning = false;
 
 // Status-effect state
@@ -944,12 +945,19 @@ function loop() {
     if (nextTickSlowed) delay *= 2;
     if (nextTickWebSlowed) delay /= 0.3; // 70% slower
     if (mummyActive) delay /= mummySpeedMultiplier;
-    gameLoopId = setTimeout(loop, delay);
+
+    // Schedule against a fixed clock instead of "now + delay", so the time
+    // spent running update/draw doesn't make some ticks slower than others.
+    const now = performance.now();
+    if (!nextTickAt || now - nextTickAt > delay * 3) nextTickAt = now; // first tick or tab was paused
+    nextTickAt += delay;
+    gameLoopId = setTimeout(loop, Math.max(0, nextTickAt - now));
   }
 }
 
 function startGame() {
   resetState();
+  nextTickAt = 0;
   isRunning = true;
   gameOverModal.classList.add('hidden');
   startBtn.disabled = true;
