@@ -137,6 +137,10 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.dpad.hidden {
+  display: none;
+}
+
 .dpad {
   display: grid;
   grid-template-columns: 64px 64px 64px;
@@ -162,7 +166,7 @@ button:disabled {
   height: 136px;
   margin: 18px auto 0;
   background: #0a0d14;
-  border: 2px dashed #00ffcc;
+  border: 2px dashed #ff6600;
   border-radius: 10px;
   display: flex;
   align-items: center;
