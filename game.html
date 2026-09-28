@@ -17,15 +17,18 @@
 
     <canvas id="gameCanvas" width="400" height="400"></canvas>
 
-    <div class="dpad">
+    <div class="dpad" id="dpadControls">
       <button id="upBtn" class="dpad-btn dpad-up">▲</button>
       <button id="leftBtn" class="dpad-btn dpad-left">◀</button>
       <button id="rightBtn" class="dpad-btn dpad-right">▶</button>
       <button id="downBtn" class="dpad-btn dpad-down">▼</button>
     </div>
 
+    <div class="swipe-pad hidden" id="swipeControls">Swipe here</div>
+
     <div class="controls">
       <button id="startBtn">Start</button>
+      <button id="pauseBtn" disabled>Pause</button>
       <a href="index.html" class="btn-link secondary">Menu</a>
     </div>
 
@@ -34,6 +37,20 @@
         <h2>Game Over!</h2>
         <p>Final Score: <span id="finalScore">0</span></p>
         <button id="restartBtn">Play Again</button>
+      </div>
+    </div>
+
+    <div id="pauseModal" class="modal hidden">
+      <div class="modal-content">
+        <h2>Paused</h2>
+        <p>Movement controls</p>
+        <div class="scheme-toggle">
+          <button id="schemeDpadBtn" class="scheme-btn active">D-Pad</button>
+          <button id="schemeSwipeBtn" class="scheme-btn">Swipe</button>
+        </div>
+        <p class="admin-label">Keyboard (arrows or WASD) always works too.</p>
+        <button id="resumeBtn">Resume</button>
+        <a href="index.html" class="btn-link secondary">Menu</a>
       </div>
     </div>
   </div>

@@ -157,6 +157,46 @@ button:disabled {
 .dpad-right { grid-column: 3; grid-row: 2; }
 .dpad-down { grid-column: 2; grid-row: 2; }
 
+.swipe-pad {
+  width: 208px;
+  height: 136px;
+  margin: 18px auto 0;
+  background: #0a0d14;
+  border: 2px dashed #00ffcc;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 0.85rem;
+  touch-action: none;
+  user-select: none;
+}
+
+.swipe-pad.hidden {
+  display: none;
+}
+
+.scheme-toggle {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.scheme-btn {
+  background: #0a0d14;
+  color: #9a9ac0;
+  border: 2px solid #1c2333;
+  padding: 8px 16px;
+  margin: 0;
+}
+
+.scheme-btn.active {
+  color: #ff6600;
+  border-color: #ff6600;
+}
+
 .modal {
   position: fixed;
   top: 0;

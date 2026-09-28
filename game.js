@@ -195,7 +195,14 @@ const ctx = canvas.getContext('2d');
 const scoreEl = document.getElementById('score');
 const highscoreEl = document.getElementById('highscore');
 const startBtn = document.getElementById('startBtn');
+const pauseBtn = document.getElementById('pauseBtn');
 const restartBtn = document.getElementById('restartBtn');
+const pauseModal = document.getElementById('pauseModal');
+const resumeBtn = document.getElementById('resumeBtn');
+const schemeDpadBtn = document.getElementById('schemeDpadBtn');
+const schemeSwipeBtn = document.getElementById('schemeSwipeBtn');
+const dpadControls = document.getElementById('dpadControls');
+const swipeControls = document.getElementById('swipeControls');
 const gameOverModal = document.getElementById('gameOverModal');
 const finalScoreEl = document.getElementById('finalScore');
 const upBtn = document.getElementById('upBtn');
@@ -221,6 +228,7 @@ let snake, direction, nextDirection, food, score, highscore;
 let gameLoopId = null;
 let nextTickAt = 0; // scheduled time of the next tick, used to keep the pace steady
 let isRunning = false;
+let isPaused = false;
 
 // Status-effect state
 let speedMultiplier = 1;
@@ -965,9 +973,27 @@ function startGame() {
   resetState();
   nextTickAt = 0;
   isRunning = true;
+  isPaused = false;
   gameOverModal.classList.add('hidden');
+  pauseModal.classList.add('hidden');
   startBtn.disabled = true;
+  pauseBtn.disabled = false;
   draw();
+  loop();
+}
+
+function pauseGame() {
+  if (!isRunning || isPaused) return;
+  isPaused = true;
+  clearTimeout(gameLoopId);
+  pauseModal.classList.remove('hidden');
+}
+
+function resumeGame() {
+  if (!isPaused) return;
+  isPaused = false;
+  pauseModal.classList.add('hidden');
+  nextTickAt = 0; // restart the fixed clock so paused time doesn't count as lag
   loop();
 }
 
@@ -982,6 +1008,7 @@ function gameOver() {
   finalScoreEl.textContent = score;
   gameOverModal.classList.remove('hidden');
   startBtn.disabled = false;
+  pauseBtn.disabled = true;
   submitScore(score);
 }
 
@@ -1014,8 +1041,64 @@ function setDirection(rawDir) {
   }
 }
 
+// ---------- Control scheme: D-Pad buttons or a swipe panel ----------
+function applyControlScheme(scheme) {
+  const isSwipe = scheme === 'swipe';
+  dpadControls.classList.toggle('hidden', isSwipe);
+  swipeControls.classList.toggle('hidden', !isSwipe);
+  schemeDpadBtn.classList.toggle('active', !isSwipe);
+  schemeSwipeBtn.classList.toggle('active', isSwipe);
+  localStorage.setItem('controlScheme', scheme);
+}
+applyControlScheme(localStorage.getItem('controlScheme') || 'dpad');
+
+schemeDpadBtn.addEventListener('click', () => applyControlScheme('dpad'));
+schemeSwipeBtn.addEventListener('click', () => applyControlScheme('swipe'));
+
+// Swipe panel: drag in a direction to move, same idea as the D-pad buttons
+(function setupSwipePad() {
+  let startX = 0, startY = 0, dragging = false;
+  const THRESHOLD = 15;
+
+  function onStart(x, y) {
+    startX = x;
+    startY = y;
+    dragging = true;
+  }
+
+  function onEnd(x, y) {
+    if (!dragging) return;
+    dragging = false;
+    const dx = x - startX;
+    const dy = y - startY;
+    if (Math.abs(dx) < THRESHOLD && Math.abs(dy) < THRESHOLD) return;
+    const dir = Math.abs(dx) > Math.abs(dy)
+      ? { x: dx > 0 ? 1 : -1, y: 0 }
+      : { x: 0, y: dy > 0 ? 1 : -1 };
+    setDirection(dir);
+  }
+
+  swipeControls.addEventListener('touchstart', (e) => {
+    const t = e.changedTouches[0];
+    onStart(t.clientX, t.clientY);
+  }, { passive: true });
+
+  swipeControls.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+
+  swipeControls.addEventListener('touchend', (e) => {
+    const t = e.changedTouches[0];
+    onEnd(t.clientX, t.clientY);
+  }, { passive: true });
+
+  // Mouse support too, so it's testable on PC
+  swipeControls.addEventListener('mousedown', (e) => onStart(e.clientX, e.clientY));
+  window.addEventListener('mouseup', (e) => { if (dragging) onEnd(e.clientX, e.clientY); });
+})();
+
 // ---------- Buttons ----------
 startBtn.addEventListener('click', startGame);
+pauseBtn.addEventListener('click', pauseGame);
+resumeBtn.addEventListener('click', resumeGame);
 restartBtn.addEventListener('click', startGame);
 upBtn.addEventListener('click', () => setDirection({ x: 0, y: -1 }));
 downBtn.addEventListener('click', () => setDirection({ x: 0, y: 1 }));
