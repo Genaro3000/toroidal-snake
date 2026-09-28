@@ -118,39 +118,41 @@ const SOULS = [
   },
 ];
 
-// ---------- Collectibles (cosmetic unlocks, 1% spawn chance each) ----------
-// Once unlocked, a collectible stops spawning and shows as obtained in the
-// info panel. Names/functions marked '???' are placeholders for now.
-const COLLECTIBLE_CHANCE = 0.005;
+// ---------- Collectibles (cosmetic unlocks, separate from souls) ----------
+// They roll on their own (they never replace a soul), can sit on the board at
+// the same time as a soul, and vanish if not grabbed in COLLECTIBLE_LIFETIME_MS.
+// Once unlocked, a collectible stops spawning and shows as obtained in the info panel.
+const COLLECTIBLE_CHANCE = 0.005;        // per locked collectible, rolled every time a soul spawns
+const COLLECTIBLE_LIFETIME_MS = 15000;
 const COLLECTIBLES = [
   {
-    id: 'pumpkin', emoji: '🎃', name: '???',
+    id: 'pumpkin', emoji: '🎃', name: "Jack-o'-Pattern",
     description: 'Unlocks an orange-and-black checkered pattern for your snake (2 orange squares, 1 black, repeating).',
   },
-  { id: 'bat', emoji: '🦇', name: '???', description: '' },
+  { id: 'bat', emoji: '🦇', name: 'Bat Crown', description: '' },
   {
-    id: 'zombie', emoji: '🧟', name: '???',
+    id: 'zombie', emoji: '🧟', name: 'Zombie Flesh',
     description: 'Unlocks a zombie skin: pink head, body in varying shades of green.',
   },
   {
-    id: 'grave', emoji: '🪦', name: '???',
+    id: 'grave', emoji: '🪦', name: 'Grave Mark',
     description: 'Unlocks customizable traces.',
   },
   {
-    id: 'candy', emoji: '🍬', name: '???',
+    id: 'candy', emoji: '🍬', name: 'Candy Palette',
     description: 'Unlocks a colorful pattern for your snake.',
   },
   {
-    id: 'moon', emoji: '🌕', name: '???',
+    id: 'moon', emoji: '🌕', name: 'Moon Orb',
     description: 'Changes your snake\'s squared body shape to a rounded one.',
   },
   {
-    id: 'crescent', emoji: '🌙', name: '???',
+    id: 'crescent', emoji: '🌙', name: 'Crescent Tip',
     description: 'Changes the final tip of your snake to a triangular shape.',
   },
-  { id: 'tornado', emoji: '🌪️', name: '???', description: '' },
-  { id: 'wolf', emoji: '🐺', name: '???', description: '' },
-  { id: 'house', emoji: '🏚️', name: '???', description: '' },
+  { id: 'mage', emoji: '🧙', name: 'Mage Glow', description: '' },
+  { id: 'wolf', emoji: '🐺', name: 'Wolf Charm', description: '' },
+  { id: 'house', emoji: '🏚️', name: 'Haunted Mansion', description: '' },
 ];
 
 function getUnlockedCollectibles() {
@@ -245,6 +247,7 @@ let shadowActive = false;
 let shadowTrail = [];          // recent head positions while active
 let hydraActive = false;
 let hydraAllies = [];          // [{x,y}, {x,y}]
+let activeCollectibles = [];   // [{x,y,collectible,expiresAt}] — independent from the soul on the board
 
 let rushTimeout, chaosTimeout, voidTimeout, botTimeout, slimeTimeout,
   miniSoulsTimeout, riftTimeout, blindnessTimeout,
@@ -291,6 +294,7 @@ function resetState() {
   shadowTrail = [];
   hydraActive = false;
   hydraAllies = [];
+  activeCollectibles = [];
 
   clearTimeout(rushTimeout);
   clearTimeout(chaosTimeout);
@@ -352,35 +356,61 @@ function computeNextHead() {
 }
 
 function placeFood() {
-  const unlocked = getUnlockedCollectibles();
-  const lockedCollectibles = COLLECTIBLES.filter(c => !unlocked.includes(c.id));
-  let chosenCollectible = null;
-  for (const c of lockedCollectibles) {
-    if (Math.random() < COLLECTIBLE_CHANCE) {
-      chosenCollectible = c;
-      break;
-    }
-  }
-
   let newFood;
   do {
     newFood = {
       x: Math.floor(Math.random() * GRID_COLS),
       y: Math.floor(Math.random() * GRID_ROWS),
-      isCollectible: !!chosenCollectible,
-      collectible: chosenCollectible,
-      type: chosenCollectible ? null : pickWeightedSoul(),
+      type: pickWeightedSoul(),
       isMimic: false,
       mimicExpiresAt: 0,
     };
   } while (snake.some(seg => seg.x === newFood.x && seg.y === newFood.y));
 
-  if (!chosenCollectible && Math.random() < MIMIC_CHANCE) {
+  if (Math.random() < MIMIC_CHANCE) {
     newFood.isMimic = true;
     newFood.mimicExpiresAt = Date.now() + MIMIC_DURATION_MS;
   }
 
   food = newFood;
+
+  // Collectibles roll separately and can appear alongside the soul.
+  maybeSpawnCollectibles();
+}
+
+function spawnCollectible(collectible) {
+  let cell;
+  let attempts = 0;
+  do {
+    cell = {
+      x: Math.floor(Math.random() * GRID_COLS),
+      y: Math.floor(Math.random() * GRID_ROWS),
+    };
+    attempts++;
+  } while (
+    attempts < 60 &&
+    (snake.some(seg => seg.x === cell.x && seg.y === cell.y) ||
+      (food && food.x === cell.x && food.y === cell.y) ||
+      activeCollectibles.some(a => a.x === cell.x && a.y === cell.y))
+  );
+
+  activeCollectibles.push({
+    x: cell.x,
+    y: cell.y,
+    collectible,
+    expiresAt: Date.now() + COLLECTIBLE_LIFETIME_MS,
+  });
+}
+
+function maybeSpawnCollectibles() {
+  const unlocked = getUnlockedCollectibles();
+  COLLECTIBLES.forEach(c => {
+    if (unlocked.includes(c.id)) return;
+    if (activeCollectibles.some(a => a.collectible.id === c.id)) return;
+    if (Math.random() < COLLECTIBLE_CHANCE) {
+      spawnCollectible(c);
+    }
+  });
 }
 
 function spawnBotSnake() {
@@ -651,6 +681,7 @@ function update() {
   // Clear expired hazards
   const now = Date.now();
   spiderWebCells = spiderWebCells.filter(c => c.expiresAt > now);
+  activeCollectibles = activeCollectibles.filter(a => a.expiresAt > now);
   graveCells = graveCells.filter(c => c.expiresAt > now);
 
   const head = computeNextHead();
@@ -716,21 +747,24 @@ function update() {
     miniSouls.splice(miniIndex, 1);
   }
 
+  // Collectibles are not souls: picking one up unlocks it, gives a small
+  // bonus, and does NOT grow the snake or replace the soul on the board.
+  const collectibleIndex = activeCollectibles.findIndex(a => a.x === head.x && a.y === head.y);
+  if (collectibleIndex !== -1) {
+    unlockCollectible(activeCollectibles[collectibleIndex].collectible.id);
+    activeCollectibles.splice(collectibleIndex, 1);
+    score += BASE_POINTS;
+    scoreEl.textContent = score;
+  }
+
   if (head.x === food.x && head.y === food.y) {
     if (food.isMimic) {
       return gameOver(); // Mimic Soul: eating it while marked is instant death
     }
-    if (food.isCollectible) {
-      unlockCollectible(food.collectible.id);
-      score += BASE_POINTS;
-      scoreEl.textContent = score;
-      placeFood();
-    } else {
-      const eatenX = food.x;
-      const eatenY = food.y;
-      applySoulEffect(food.type, eatenX, eatenY);
-      placeFood();
-    }
+    const eatenX = food.x;
+    const eatenY = food.y;
+    applySoulEffect(food.type, eatenX, eatenY);
+    placeFood();
   } else {
     snake.pop();
   }
@@ -837,26 +871,30 @@ function drawGameContents() {
     ctx.fillRect(m.x * CELL_SIZE + 6, m.y * CELL_SIZE + 6, CELL_SIZE - 12, CELL_SIZE - 12);
   });
 
-  // Soul (food) or Collectible
-  if (food.isCollectible) {
+  // Soul (food)
+  ctx.fillStyle = food.type.color;
+  ctx.fillRect(food.x * CELL_SIZE + 2, food.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+  const outline = food.type.border || food.type.glow;
+  if (outline) {
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(food.x * CELL_SIZE + 2, food.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+  }
+  if (food.isMimic) {
+    ctx.strokeStyle = '#7a2f00';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(food.x * CELL_SIZE, food.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+  }
+
+  // Collectibles: real emoji, independent from the soul
+  if (activeCollectibles.length > 0) {
     ctx.font = `${CELL_SIZE - 2}px serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(food.collectible.emoji, food.x * CELL_SIZE + CELL_SIZE / 2, food.y * CELL_SIZE + CELL_SIZE / 2 + 1);
-  } else {
-    ctx.fillStyle = food.type.color;
-    ctx.fillRect(food.x * CELL_SIZE + 2, food.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-    const outline = food.type.border || food.type.glow;
-    if (outline) {
-      ctx.strokeStyle = outline;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(food.x * CELL_SIZE + 2, food.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-    }
-    if (food.isMimic) {
-      ctx.strokeStyle = '#7a2f00';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(food.x * CELL_SIZE, food.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-    }
+    ctx.fillStyle = '#ffffff';
+    activeCollectibles.forEach(a => {
+      ctx.fillText(a.collectible.emoji, a.x * CELL_SIZE + CELL_SIZE / 2, a.y * CELL_SIZE + CELL_SIZE / 2 + 1);
+    });
   }
 
   // Hydra allies
@@ -1084,10 +1122,9 @@ function renderAdminCollectibleButtons() {
         alert('Start the game first.');
         return;
       }
-      food.isCollectible = true;
-      food.collectible = c;
-      food.type = null;
-      food.isMimic = false;
+      // Replace any copy already on the board, then spawn a fresh one
+      activeCollectibles = activeCollectibles.filter(a => a.collectible.id !== c.id);
+      spawnCollectible(c);
       draw();
     });
     adminCollectibleButtons.appendChild(btn);
