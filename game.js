@@ -104,7 +104,7 @@ const SOULS = [
   {
     id: 'shadow', name: 'Shadow Soul', color: '#0a004d', border: '#000000', rarity: 'Rare', weight: 1.5,
     category: 'villain',
-    description: 'Doppelganger: a shadow retraces your own path a few steps behind you for 7 seconds. Contact is lethal.',
+    description: 'Doppelganger: a shadow clone of your snake attaches right behind you, one cell apart, for 7 seconds. Touching it is lethal.',
   },
   {
     id: 'zombie', name: 'Zombie Soul', color: '#2cde00', border: '#ff26f1', rarity: 'Legendary', weight: 0.6,
@@ -245,7 +245,8 @@ let mummySpeedMultiplier = 1;
 let bloodyActive = false;
 let bloodCells = new Set();
 let shadowActive = false;
-let shadowTrail = [];          // recent head positions while active
+let shadowLength = 0;          // how many segments the shadow clone has
+let pathHistory = [];          // every cell the head has visited, newest first
 let hydraActive = false;
 let hydraAllies = [];          // [{x,y}, {x,y}]
 let activeCollectibles = [];   // [{x,y,collectible,expiresAt}] — independent from the soul on the board
@@ -264,6 +265,12 @@ function resetState() {
     { x: 9, y: 10 },
     { x: 8, y: 10 },
   ];
+  // Path history starts with the snake itself, plus a virtual straight trail
+  // behind it so a Shadow Soul eaten right away still has room to appear.
+  pathHistory = snake.map(seg => ({ x: seg.x, y: seg.y }));
+  for (let i = 1; i <= 100; i++) {
+    pathHistory.push({ x: (((8 - i) % GRID_COLS) + GRID_COLS) % GRID_COLS, y: 10 });
+  }
   direction = { x: 1, y: 0 };
   nextDirection = { x: 1, y: 0 };
   score = 0;
@@ -292,7 +299,7 @@ function resetState() {
   bloodyActive = false;
   bloodCells = new Set();
   shadowActive = false;
-  shadowTrail = [];
+  shadowLength = 0;
   hydraActive = false;
   hydraAllies = [];
   activeCollectibles = [];
@@ -479,6 +486,14 @@ function spawnPhantom() {
   phantomTimeout = setTimeout(() => { phantom = null; }, 8000);
 }
 
+// The Shadow Soul's clone: same length as your snake was when you ate it,
+// following your exact path, with ONE empty cell between your tail and it.
+function getShadowCells() {
+  if (!shadowActive) return [];
+  const start = snake.length + 1; // +1 = the gap cell
+  return pathHistory.slice(start, start + shadowLength);
+}
+
 function scheduleMummyBursts() {
   const options = [0.35, 0.5, 0.7, 1.6, 2, 2.4]; // slow...fast, picked randomly
   const pickBurst = () => options[Math.floor(Math.random() * options.length)];
@@ -659,11 +674,11 @@ function applySoulEffect(type, atX, atY) {
     case 'shadow':
       score += BASE_POINTS;
       shadowActive = true;
-      shadowTrail = [];
+      shadowLength = snake.length; // a clone of your snake, as long as it is right now
       clearTimeout(shadowTimeout);
       shadowTimeout = setTimeout(() => {
         shadowActive = false;
-        shadowTrail = [];
+        shadowLength = 0;
       }, 7000);
       break;
   }
@@ -696,11 +711,7 @@ function update() {
   const hitLethalMimic = food.isMimic && head.x === food.x && head.y === food.y;
   const hitBlood = bloodyActive && bloodCells.has(`${head.x},${head.y}`);
 
-  const SHADOW_DELAY = 5;
-  const shadowPos = shadowActive && shadowTrail.length >= SHADOW_DELAY
-    ? shadowTrail[shadowTrail.length - SHADOW_DELAY]
-    : null;
-  const hitShadow = shadowPos && shadowPos.x === head.x && shadowPos.y === head.y;
+  const hitShadow = shadowActive && getShadowCells().some(c => c.x === head.x && c.y === head.y);
 
   if (hitSelf || hitBot || hitGrave || hitLethalMimic || hitBlood || hitShadow) {
     return gameOver();
@@ -712,11 +723,10 @@ function update() {
   // Spider's web slows you only while you're actually standing on it
   nextTickWebSlowed = spiderWebCells.some(c => c.x === head.x && c.y === head.y);
 
-  if (shadowActive) {
-    shadowTrail.push({ x: head.x, y: head.y });
-  }
-
   snake.unshift(head);
+
+  pathHistory.unshift({ x: head.x, y: head.y });
+  if (pathHistory.length > 1000) pathHistory.length = 1000;
 
   if (slimeActive) {
     snake.forEach(seg => slimeCells.add(`${seg.x},${seg.y}`));
@@ -851,19 +861,15 @@ function drawGameContents() {
     ctx.fillRect(phantom.x * CELL_SIZE + 1, phantom.y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
   }
 
-  // Shadow Soul: a dark silhouette trailing a few steps behind you
+  // Shadow Soul: a full clone of your snake, one cell behind your tail
   if (shadowActive) {
-    const SHADOW_DELAY = 5;
-    const shadowPos = shadowTrail.length >= SHADOW_DELAY
-      ? shadowTrail[shadowTrail.length - SHADOW_DELAY]
-      : null;
-    if (shadowPos) {
-      ctx.fillStyle = '#0a004d';
-      ctx.fillRect(shadowPos.x * CELL_SIZE + 2, shadowPos.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(shadowPos.x * CELL_SIZE + 2, shadowPos.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-    }
+    ctx.fillStyle = '#0a004d';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    getShadowCells().forEach(c => {
+      ctx.fillRect(c.x * CELL_SIZE + 1, c.y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+      ctx.strokeRect(c.x * CELL_SIZE + 1, c.y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+    });
   }
 
   // Mini-souls (from Bounty Soul)
