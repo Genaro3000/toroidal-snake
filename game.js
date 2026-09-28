@@ -29,7 +29,7 @@ const SOULS = [
   {
     id: 'rush', name: 'Rush Soul', color: '#ed7300', rarity: 'Uncommon', weight: 7,
     category: 'active',
-    description: 'Sprint: doubles your movement speed for 5 seconds.',
+    description: 'Sprint: doubles your movement speed for 3 seconds.',
   },
   {
     id: 'bounty', name: 'Bounty Soul', color: '#f2ff00', rarity: 'Uncommon', weight: 6,
@@ -39,7 +39,7 @@ const SOULS = [
   {
     id: 'void', name: 'Void Soul', color: '#000000', glow: '#00c8ff', rarity: 'Uncommon', weight: 5,
     category: 'active',
-    description: 'Ghost Mode: pass through your own body for 3 seconds.',
+    description: 'Ghost Mode: pass through your own body for 5 seconds.',
   },
   {
     id: 'slime', name: 'Slime Soul', color: '#00cf34', rarity: 'Rare', weight: 2,
@@ -104,7 +104,7 @@ const SOULS = [
   {
     id: 'shadow', name: 'Shadow Soul', color: '#0a004d', border: '#000000', rarity: 'Rare', weight: 1.5,
     category: 'villain',
-    description: 'Doppelganger: a shadow clone of your snake attaches right behind you, one cell apart, for 7 seconds. Touching it is lethal.',
+    description: 'Doppelganger: a shadow clone of your snake attaches right behind you, one cell apart, for 6 seconds. Touching it is lethal.',
   },
   {
     id: 'zombie', name: 'Zombie Soul', color: '#2cde00', border: '#ff26f1', rarity: 'Legendary', weight: 0.6,
@@ -552,7 +552,7 @@ function applySoulEffect(type, atX, atY) {
       score += BASE_POINTS;
       speedMultiplier = 2;
       clearTimeout(rushTimeout);
-      rushTimeout = setTimeout(() => { speedMultiplier = 1; }, 5000);
+      rushTimeout = setTimeout(() => { speedMultiplier = 1; }, 3000);
       break;
 
     case 'bounty':
@@ -581,7 +581,7 @@ function applySoulEffect(type, atX, atY) {
       score += BASE_POINTS;
       ghostMode = true;
       clearTimeout(voidTimeout);
-      voidTimeout = setTimeout(() => { ghostMode = false; }, 3000);
+      voidTimeout = setTimeout(() => { ghostMode = false; }, 5000);
       break;
 
     case 'rift':
@@ -687,7 +687,7 @@ function applySoulEffect(type, atX, atY) {
       shadowTimeout = setTimeout(() => {
         shadowActive = false;
         shadowLength = 0;
-      }, 7000);
+      }, 6000);
       break;
   }
   scoreEl.textContent = score;
