@@ -1016,6 +1016,27 @@ downBtn.addEventListener('click', () => setDirection({ x: 0, y: 1 }));
 leftBtn.addEventListener('click', () => setDirection({ x: -1, y: 0 }));
 rightBtn.addEventListener('click', () => setDirection({ x: 1, y: 0 }));
 
+// ---------- Keyboard controls (PC): arrows and WASD work together ----------
+const KEY_DIRECTIONS = {
+  ArrowUp: { x: 0, y: -1 },    KeyW: { x: 0, y: -1 },
+  ArrowDown: { x: 0, y: 1 },   KeyS: { x: 0, y: 1 },
+  ArrowLeft: { x: -1, y: 0 },  KeyA: { x: -1, y: 0 },
+  ArrowRight: { x: 1, y: 0 },  KeyD: { x: 1, y: 0 },
+};
+
+window.addEventListener('keydown', (e) => {
+  const dir = KEY_DIRECTIONS[e.code];
+  if (!dir) return;
+
+  // Don't hijack typing (e.g. the admin length box) or browser shortcuts like Ctrl+D
+  const tag = e.target && e.target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+  e.preventDefault(); // stops the arrow keys from scrolling the page
+  setDirection(dir);
+});
+
 // ---------- Souls info panel (3 tabs) ----------
 function renderSoulsList(tab) {
   if (tab === 'collectibles') {
