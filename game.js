@@ -1,5 +1,6 @@
 // This file only runs on game.html
 import { db } from './firebase-init.js';
+import { getEquippedInGroup } from './cosmetics.js';
 import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const CELL_SIZE = 20;
@@ -255,6 +256,7 @@ let bloodCells = new Set();
 let shadowActive = false;
 let shadowLength = 0;          // how many segments the shadow clone has
 let pathHistory = [];          // every cell the head has visited, newest first
+let traceCells = [];           // {x,y,bornAt} — Grave Mark cosmetic trace
 let hydraActive = false;
 let hydraAllies = [];          // [{x,y}, {x,y}]
 let activeCollectibles = [];   // [{x,y,collectible,expiresAt}] — independent from the soul on the board
@@ -276,6 +278,7 @@ function resetState() {
   // Path history starts with the snake itself, plus a virtual straight trail
   // behind it so a Shadow Soul eaten right away still has room to appear.
   pathHistory = snake.map(seg => ({ x: seg.x, y: seg.y }));
+  traceCells = [];
   for (let i = 1; i <= 100; i++) {
     pathHistory.push({ x: (((8 - i) % GRID_COLS) + GRID_COLS) % GRID_COLS, y: 10 });
   }
@@ -736,6 +739,13 @@ function update() {
   pathHistory.unshift({ x: head.x, y: head.y });
   if (pathHistory.length > 1000) pathHistory.length = 1000;
 
+  if (getEquippedInGroup('trace')) {
+    traceCells.push({ x: head.x, y: head.y, bornAt: Date.now() });
+  }
+  const TRACE_LIFETIME_MS = 2500;
+  const traceNow = Date.now();
+  traceCells = traceCells.filter(t => traceNow - t.bornAt < TRACE_LIFETIME_MS);
+
   if (slimeActive) {
     snake.forEach(seg => slimeCells.add(`${seg.x},${seg.y}`));
   }
@@ -920,14 +930,86 @@ function drawGameContents() {
     });
   }
 
-  // Snake
-  snake.forEach((seg, i) => {
-    if (mummyActive) {
-      ctx.fillStyle = i === 0 ? '#ffffff' : '#ffdd9e';
-    } else {
-      ctx.fillStyle = i === 0 ? '#66ffcc' : '#00ff99';
+  // Grave Mark cosmetic: a fading trace behind your path
+  const traceGroup = getEquippedInGroup('trace');
+  if (traceGroup) {
+    const traceNow2 = Date.now();
+    traceCells.forEach(t => {
+      const age = traceNow2 - t.bornAt;
+      const alpha = Math.max(0, 1 - age / 2500) * 0.35;
+      ctx.fillStyle = `rgba(140, 140, 140, ${alpha})`;
+      ctx.fillRect(t.x * CELL_SIZE + 4, t.y * CELL_SIZE + 4, CELL_SIZE - 8, CELL_SIZE - 8);
+    });
+  }
+
+  // Wolf Charm cosmetic: a decorative companion trailing behind (no collision)
+  if (getEquippedInGroup('companion')) {
+    const gap = snake.length + 6;
+    const spot = pathHistory[gap];
+    if (spot) {
+      ctx.font = `${CELL_SIZE - 2}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🐺', spot.x * CELL_SIZE + CELL_SIZE / 2, spot.y * CELL_SIZE + CELL_SIZE / 2 + 1);
     }
-    ctx.fillRect(seg.x * CELL_SIZE + 1, seg.y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+  }
+
+  // Snake — colors/shape/tail/glow depend on which cosmetics are equipped
+  const patternId = getEquippedInGroup('pattern');
+  const shapeId = getEquippedInGroup('shape');
+  const tailId = getEquippedInGroup('tail');
+  const glowId = getEquippedInGroup('glow');
+
+  const ZOMBIE_GREENS = ['#2e7d32', '#43a047', '#66bb6a', '#81c784'];
+  const CANDY_COLORS = ['#ff4d6d', '#ffd166', '#06d6a0', '#4cc9f0', '#c77dff'];
+
+  function segmentColor(i) {
+    if (mummyActive) return i === 0 ? '#ffffff' : '#ffdd9e';
+    if (patternId === 'pumpkin') {
+      if (i === 0) return '#ff8c00';
+      return (i - 1) % 4 === 0 ? '#000000' : '#ff8c00';
+    }
+    if (patternId === 'zombie') {
+      return i === 0 ? '#ff69b4' : ZOMBIE_GREENS[(i - 1) % ZOMBIE_GREENS.length];
+    }
+    if (patternId === 'candy') {
+      return i === 0 ? '#ffffff' : CANDY_COLORS[(i - 1) % CANDY_COLORS.length];
+    }
+    return i === 0 ? '#66ffcc' : '#00ff99';
+  }
+
+  snake.forEach((seg, i) => {
+    const isTailTip = i === snake.length - 1 && snake.length > 1;
+    const cx = seg.x * CELL_SIZE + CELL_SIZE / 2;
+    const cy = seg.y * CELL_SIZE + CELL_SIZE / 2;
+    const half = (CELL_SIZE - 2) / 2;
+
+    ctx.fillStyle = segmentColor(i);
+
+    if (glowId) {
+      const glowAll = glowId === 'mage';
+      if (glowAll || i === 0) {
+        ctx.shadowColor = i === 0 ? '#ffffff' : segmentColor(i);
+        ctx.shadowBlur = 8;
+      }
+    }
+
+    if (tailId === 'crescent' && isTailTip) {
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - half);
+      ctx.lineTo(cx + half, cy + half);
+      ctx.lineTo(cx - half, cy + half);
+      ctx.closePath();
+      ctx.fill();
+    } else if (shapeId === 'moon') {
+      ctx.beginPath();
+      ctx.arc(cx, cy, half, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillRect(seg.x * CELL_SIZE + 1, seg.y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+    }
+
+    ctx.shadowBlur = 0;
   });
 }
 

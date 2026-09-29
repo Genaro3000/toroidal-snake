@@ -67,6 +67,53 @@ leaderboardBtn.addEventListener('click', () => {
 });
 closeLeaderboardBtn.addEventListener('click', () => leaderboardModal.classList.add('hidden'));
 
+// ---------- Customize (equip/unequip unlocked cosmetics) ----------
+import { COSMETIC_ITEMS, getUnlockedCollectibles, getEquipped, toggleCosmetic } from './cosmetics.js';
+
+const customizeBtn = document.getElementById('customizeBtn');
+const customizeModal = document.getElementById('customizeModal');
+const closeCustomizeBtn = document.getElementById('closeCustomizeBtn');
+const customizeList = document.getElementById('customizeList');
+
+function renderCustomizeList() {
+  const unlocked = getUnlockedCollectibles();
+  const equipped = getEquipped();
+
+  customizeList.innerHTML = '';
+  COSMETIC_ITEMS.forEach(item => {
+    const isUnlocked = unlocked.includes(item.id);
+    const isOn = !!equipped[item.id];
+
+    const li = document.createElement('li');
+    li.className = `${isUnlocked ? '' : 'locked'} ${isOn ? 'equipped' : ''}`.trim();
+    li.innerHTML = `
+      <span class="soul-dot collectible-emoji">${item.emoji}</span>
+      <div>
+        <span class="soul-name">${item.name}</span><span class="soul-rarity">${item.group}</span>
+        <div class="soul-effect">${item.description}</div>
+        <div class="equip-badge ${isOn ? 'on' : ''}">
+          ${isUnlocked ? (isOn ? '✅ Equipped' : 'Tap to equip') : '🔒 Locked'}
+        </div>
+      </div>
+    `;
+
+    if (isUnlocked) {
+      li.addEventListener('click', () => {
+        toggleCosmetic(item.id);
+        renderCustomizeList();
+      });
+    }
+
+    customizeList.appendChild(li);
+  });
+}
+
+customizeBtn.addEventListener('click', () => {
+  renderCustomizeList();
+  customizeModal.classList.remove('hidden');
+});
+closeCustomizeBtn.addEventListener('click', () => customizeModal.classList.add('hidden'));
+
 // This file only runs on index.html — it just draws a static
 // snake + food on the small preview canvas. No game logic here.
 const previewCanvas = document.getElementById('previewCanvas');
