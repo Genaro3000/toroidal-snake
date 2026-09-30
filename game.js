@@ -75,7 +75,7 @@ const SOULS = [
   {
     id: 'grave', name: 'Grave Soul', color: '#4d4d4d', border: '#000000', rarity: 'Common', weight: 8,
     category: 'villain',
-    description: 'Tombstone Hazard: a grave appears where consumed for 10 seconds. Touching it is lethal.',
+    description: 'Tombstone Hazard: a grave appears at a random spot on the board for 10 seconds. Touching it is lethal.',
   },
   {
     id: 'mimic', name: 'Mimic Soul', color: '#63310d', border: '#7a2f00', rarity: 'Uncommon', weight: 0,
@@ -479,8 +479,22 @@ function spawnSpiderWeb(atX, atY) {
   spiderWebCells.push(...cells);
 }
 
-function spawnGrave(atX, atY) {
-  graveCells.push({ x: atX, y: atY, expiresAt: Date.now() + 10000 });
+function spawnGrave() {
+  let cell;
+  let attempts = 0;
+  do {
+    cell = {
+      x: Math.floor(Math.random() * GRID_COLS),
+      y: Math.floor(Math.random() * GRID_ROWS),
+    };
+    attempts++;
+  } while (
+    attempts < 60 &&
+    (snake.some(seg => seg.x === cell.x && seg.y === cell.y) ||
+      (food && food.x === cell.x && food.y === cell.y) ||
+      graveCells.some(g => g.x === cell.x && g.y === cell.y))
+  );
+  graveCells.push({ x: cell.x, y: cell.y, expiresAt: Date.now() + 10000 });
 }
 
 function spawnPhantom() {
@@ -657,7 +671,7 @@ function applySoulEffect(type, atX, atY) {
 
     case 'grave':
       score += BASE_POINTS;
-      spawnGrave(atX, atY);
+      spawnGrave();
       break;
 
     case 'mummy':
