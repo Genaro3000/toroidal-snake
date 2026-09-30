@@ -848,7 +848,7 @@ function drawGameContents() {
   }
 
   // Spider webs
-  ctx.fillStyle = 'rgba(99, 49, 13, 0.35)';
+  ctx.fillStyle = 'rgba(224, 229, 232, 0.35)';
   spiderWebCells.forEach(c => {
     ctx.fillRect(c.x * CELL_SIZE + 2, c.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
   });
@@ -1210,11 +1210,6 @@ window.addEventListener('keydown', (e) => {
 
 // ---------- Souls info panel (3 tabs) ----------
 function renderSoulsList(tab) {
-  if (tab === 'collectibles') {
-    renderCollectiblesList();
-    return;
-  }
-
   const dataByTab = {
     active: SOULS.filter(s => s.category === 'active' || s.category === 'both'),
     villain: SOULS.filter(s => s.category === 'villain' || s.category === 'both'),
@@ -1236,24 +1231,6 @@ function renderSoulsList(tab) {
       <div>
         <span class="soul-name">${s.name}</span><span class="soul-rarity">${s.rarity}</span>
         <div class="soul-effect">${s.description}</div>
-      </div>
-    `;
-    soulsList.appendChild(li);
-  });
-}
-
-function renderCollectiblesList() {
-  const unlocked = getUnlockedCollectibles();
-  soulsList.innerHTML = '';
-  COLLECTIBLES.forEach(c => {
-    const isUnlocked = unlocked.includes(c.id);
-    const li = document.createElement('li');
-    li.innerHTML = `
-      <span class="soul-dot collectible-emoji">${c.emoji}</span>
-      <div>
-        <span class="soul-name">${c.name}</span><span class="soul-rarity">0.5%</span>
-        <div class="soul-effect">${c.description || 'Function TBD.'}</div>
-        <div class="collectible-status ${isUnlocked ? 'unlocked' : ''}">${isUnlocked ? '✅ Already obtained' : '🔒 Locked'}</div>
       </div>
     `;
     soulsList.appendChild(li);
