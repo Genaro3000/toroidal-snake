@@ -1009,10 +1009,27 @@ function drawGameContents() {
     }
 
     if (tailId === 'crescent' && isTailTip) {
+      const prev = snake[i - 1];
+      const wrapDelta = (a, b, max) => {
+        let d = a - b;
+        if (d > max / 2) d -= max;
+        if (d < -max / 2) d += max;
+        return d;
+      };
+      const dx = Math.sign(wrapDelta(seg.x, prev.x, GRID_COLS));
+      const dy = Math.sign(wrapDelta(seg.y, prev.y, GRID_ROWS));
+
+      const apexX = cx + dx * half;
+      const apexY = cy + dy * half;
+      const baseCx = cx - dx * half;
+      const baseCy = cy - dy * half;
+      const perpX = -dy * half;
+      const perpY = dx * half;
+
       ctx.beginPath();
-      ctx.moveTo(cx, cy - half);
-      ctx.lineTo(cx + half, cy + half);
-      ctx.lineTo(cx - half, cy + half);
+      ctx.moveTo(apexX, apexY);
+      ctx.lineTo(baseCx + perpX, baseCy + perpY);
+      ctx.lineTo(baseCx - perpX, baseCy - perpY);
       ctx.closePath();
       ctx.fill();
     } else if (shapeId === 'moon') {
