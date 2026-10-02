@@ -298,6 +298,7 @@ function resetState() {
   riftActive = false;
   canvas.classList.remove('rift-active');
   canvas.classList.remove('skeleton-active');
+  canvas.classList.toggle('haunted-active', getEquippedInGroup('theme') === 'house');
 
   spiderWebCells = [];
   nextTickWebSlowed = false;
@@ -1044,6 +1045,26 @@ function drawGameContents() {
   });
 }
 
+let fogOffset = 0;
+
+function drawHauntedFog() {
+  ctx.save();
+  for (let i = 0; i < 3; i++) {
+    const bandHeight = 90;
+    const speed = 0.6 + i * 0.3;
+    const travel = canvas.height + bandHeight * 2;
+    const y = (((fogOffset * speed) % travel) + travel) % travel - bandHeight;
+    const grad = ctx.createLinearGradient(0, y, 0, y + bandHeight);
+    grad.addColorStop(0, 'rgba(200, 205, 215, 0)');
+    grad.addColorStop(0.5, `rgba(200, 205, 215, ${0.06 + i * 0.025})`);
+    grad.addColorStop(1, 'rgba(200, 205, 215, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, y, canvas.width, bandHeight);
+  }
+  ctx.restore();
+  fogOffset += 1.2;
+}
+
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -1061,6 +1082,10 @@ function draw() {
     ctx.restore();
   } else {
     drawGameContents();
+  }
+
+  if (getEquippedInGroup('theme') === 'house') {
+    drawHauntedFog();
   }
 }
 

@@ -98,6 +98,15 @@ canvas {
   border-color: #ffffff;
 }
 
+@keyframes hauntedFlicker {
+  0%, 19%, 21%, 23%, 55%, 100% { border-color: #00ffcc; }
+  20%, 22%, 54% { border-color: rgba(160, 160, 170, 0.55); }
+}
+
+#gameCanvas.haunted-active {
+  animation: hauntedFlicker 4s infinite;
+}
+
 .controls {
   margin-top: 16px;
 }
