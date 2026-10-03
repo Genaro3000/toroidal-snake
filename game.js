@@ -298,7 +298,6 @@ function resetState() {
   riftActive = false;
   canvas.classList.remove('rift-active');
   canvas.classList.remove('skeleton-active');
-  canvas.classList.toggle('haunted-active', getEquippedInGroup('theme') === 'house');
 
   spiderWebCells = [];
   nextTickWebSlowed = false;
@@ -1065,6 +1064,32 @@ function drawHauntedFog() {
   fogOffset += 1.2;
 }
 
+// A few bats drifting across the board in a loose wave pattern, purely decorative
+const HAUNTED_BATS = [
+  { speed: 0.9, laneY: 0.2, phase: 0 },
+  { speed: 1.3, laneY: 0.45, phase: 2 },
+  { speed: 0.7, laneY: 0.7, phase: 4 },
+];
+let batOffset = 0;
+
+function drawHauntedBats() {
+  ctx.save();
+  ctx.globalAlpha = 0.5;
+  ctx.font = `${CELL_SIZE - 4}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  HAUNTED_BATS.forEach(bat => {
+    const travel = canvas.width + 60;
+    const x = (((batOffset * bat.speed + bat.phase * 40) % travel) + travel) % travel - 30;
+    const y = bat.laneY * canvas.height + Math.sin((batOffset * bat.speed) / 20 + bat.phase) * 14;
+    ctx.fillText('🦇', x, y);
+  });
+
+  ctx.restore();
+  batOffset += 1;
+}
+
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -1085,6 +1110,7 @@ function draw() {
   }
 
   if (getEquippedInGroup('theme') === 'house') {
+    drawHauntedBats();
     drawHauntedFog();
   }
 }

@@ -13,7 +13,7 @@ export const COSMETIC_ITEMS = [
   { id: 'mage', emoji: '🧙', name: 'Mage Glow', group: 'glow', description: 'A soft glow around your whole body.' },
   { id: 'grave', emoji: '🪦', name: 'Grave Mark', group: 'trace', description: 'Leaves a fading grey trace behind you as you move.' },
   { id: 'wolf', emoji: '🐺', name: 'Wolf Charm', group: 'companion', description: 'A cosmetic wolf follows behind you. Purely decorative — no collision.' },
-  { id: 'house', emoji: '🏚️', name: 'Haunted Mansion', group: 'theme', description: 'Fog Theme: slow-drifting fog over the board and a flickering border, like an abandoned house.' },
+  { id: 'house', emoji: '🏚️', name: 'Haunted Mansion', group: 'theme', description: 'Fog Theme: slow-drifting fog and bats flying across the board, like an abandoned house.' },
 ];
 
 export const EXCLUSIVE_GROUPS = ['pattern', 'shape', 'glow', 'theme'];
